@@ -27,11 +27,13 @@ release:
 	strip target/release/ssm-session
 	strip target/release/scale-in-ecs
 	strip target/release/ecr-gitconfig
+	strip target/release/ses-suppression-list
 
 install: release
 	cp target/release/ssm-session ~/.local/bin
 	cp target/release/scale-in-ecs ~/.local/bin
 	cp target/release/ecr-gitconfig ~/.local/bin
+	cp target/release/ses-suppression-list ~/.local/bin
 
 clean:
 	cargo clean
@@ -41,3 +43,4 @@ uninstall: clean
 	rm -f ~/.local/bin/ssm-session
 	rm -f ~/.local/bin/scale-in-ecs
 	rm -f ~/.local/bin/ecr-gitconfig
+	rm -f ~/.local/bin/ses-suppression-list
