@@ -25,7 +25,7 @@ release:
 	cargo update
 	cargo build -r
 	strip target/release/ssm-session
-    strip target/release/scale-in-ecs
+	strip target/release/scale-in-ecs
 
 install: release
 	cp target/release/ssm-session ~/.local/bin
@@ -37,3 +37,4 @@ clean:
 
 uninstall: clean
 	rm -f ~/.local/bin/ssm-session
+	rm -f ~/.local/bin/scale-in-ecs

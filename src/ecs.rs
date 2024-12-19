@@ -110,7 +110,6 @@ pub async fn delete_service(
     }
 }
 
-
 pub async fn get_service_arn(
     ecs_client: &Client,
     cluster: &str,
