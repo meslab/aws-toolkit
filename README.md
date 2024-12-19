@@ -4,6 +4,8 @@ Command line utilities:
 ```
 ssm-session
 scale-in-ecs
+ses-suppression-list
+ecr-gitcoinfig
 
 
 ## Installation 
