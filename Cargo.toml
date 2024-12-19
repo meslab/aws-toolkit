@@ -9,12 +9,14 @@ edition = "2021"
 async-recursion = "1.1.1"
 aws-config = { version = "1.5.11", features = ["behavior-version-latest"] }
 aws-sdk-autoscaling = { version = "1.59.0", features = ["behavior-version-latest"] }
+aws-sdk-codecommit = { version = "1.51.0", features = ["behavior-version-latest"] }
 aws-sdk-ecs = { version = "1.59.0", features = ["behavior-version-latest"] }
 aws-sdk-elasticache = { version = "1.56.0", features = ["behavior-version-latest"] }
 aws-sdk-elasticloadbalancingv2 = { version = "1.59.0", features = ["behavior-version-latest"] }
 aws-sdk-rds = { version = "1.70.0", features = ["behavior-version-latest"] }
 clap = { version = "4.5.23", features = ["derive"] }
 env_logger = "0.11.5"
+git2 = "0.18.3"
 log = "0.4.22"
 tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
 
@@ -26,7 +28,10 @@ codegen-units = 1
 name = "ssm-session"
 path = "src/ssm-session.rs"
 
-
 [[bin]]
 name = "scale-in-ecs"
 path = "src/scale-in-ecs.rs"
+
+[[bin]]
+name = "ecr-gitconfig"
+path = "src/ecr-gitconfig.rs"
