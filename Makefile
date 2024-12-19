@@ -43,7 +43,10 @@ ses-suppression-list:
 
 release: ssm-session scale-in-ecs ecr-gitconfig ses-suppression-list
 
-install: release
+all:
+	cargo build -r
+
+install: all
 	cp target/release/ssm-session ~/.local/bin
 	cp target/release/scale-in-ecs ~/.local/bin
 	cp target/release/ecr-gitconfig ~/.local/bin
@@ -59,4 +62,4 @@ uninstall: clean
 	rm -f ~/.local/bin/ecr-gitconfig
 	rm -f ~/.local/bin/ses-suppression-list
 
-.PHONY: rust-version format lint test run build ssm-session scale-in-ecs ecr-gitconfig ses-suppression-list release install clean uninstall
+.PHONY: rust-version format lint test run build ssm-session scale-in-ecs ecr-gitconfig ses-suppression-list release install clean uninstall all
