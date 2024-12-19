@@ -45,6 +45,10 @@ release: ssm-session scale-in-ecs ecr-gitconfig ses-suppression-list
 
 all:
 	cargo build -r
+	strip target/release/ssm-session
+	strip target/release/scale-in-ecs
+	strip target/release/ecr-gitconfig
+	strip target/release/ses-suppression-list
 
 install: all
 	cp target/release/ssm-session ~/.local/bin
