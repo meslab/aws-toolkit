@@ -1,0 +1,32 @@
+[package]
+name = "aws-toolkit"
+version = "0.2.5"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+async-recursion = "1.1.1"
+aws-config = { version = "1.5.10", features = ["behavior-version-latest"] }
+aws-sdk-autoscaling = { version = "1.58.0", features = ["behavior-version-latest"] }
+aws-sdk-ecs = { version = "1.57.1", features = ["behavior-version-latest"] }
+aws-sdk-elasticache = { version = "1.55.0", features = ["behavior-version-latest"] }
+aws-sdk-elasticloadbalancingv2 = { version = "1.58.0", features = ["behavior-version-latest"] }
+aws-sdk-rds = { version = "1.69.0", features = ["behavior-version-latest"] }
+clap = { version = "4.5.23", features = ["derive"] }
+env_logger = "0.11.5"
+log = "0.4.22"
+tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+
+[[bin]]
+name = "ssm-session"
+path = "src/ssm-session.rs"
+
+
+[[bin]]
+name = "scale-in-ecs"
+path = "src/scale-in-ecs.rs"
