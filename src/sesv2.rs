@@ -35,7 +35,7 @@ pub async fn get_suppression_list(
 
         for address in addresses.unwrap().suppressed_destination_summaries() {
             debug!("Address: {:?}", address);
-            let now = DateTime::from(chrono::Utc::now());
+            let now = chrono::Utc::now();
             let timestamp = address.last_update_time();
             match last_count_days {
                 None => {
