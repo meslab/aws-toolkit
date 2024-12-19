@@ -6,7 +6,7 @@ ssm-session
 scale-in-ecs
 ses-suppression-list
 ecr-gitcoinfig
-
+```
 
 ## Installation 
 
@@ -15,3 +15,4 @@ Linux:
 git clone https://github.com/meslab/aws-toolkit.git
 cd aws-toolkit/
 make install
+```
