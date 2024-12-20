@@ -56,7 +56,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
     };
 
-    let ecs_client = initialize_client::<_, _, EcsClient>(region, &args.profile).await;
+    let ecs_client = initialize_client::<EcsClient>(region, &args.profile).await;
     let instance_id = if let Some(instance) = args.instance {
         instance
     } else {

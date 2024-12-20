@@ -85,8 +85,7 @@ async fn main() -> io::Result<()> {
         for region in args.regions.iter() {
             let codecommit_region = Region::new(region.clone());
 
-            let client =
-                initialize_client::<_, _, CodeCommitClient>(codecommit_region, profile).await;
+            let client = initialize_client::<CodeCommitClient>(codecommit_region, profile).await;
             let base_repositories =
                 codecommit::list_exact_repositories(&client, &args.base, &args.exclude).await;
             info!("Base repositories: {:?}", base_repositories);

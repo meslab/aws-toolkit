@@ -9,15 +9,21 @@ use aws_sdk_rds::{Client as RdsClient, Config as RdsConfig};
 use aws_sdk_sesv2::{Client as Sesv2Client, Config as Sesv2Config};
 
 // Define a generic trait for AWS clients
-pub trait AwsClientBuilder<TConfig, TClient> {
-    fn from_config(config: TConfig) -> TClient;
-    fn build_config(region: Region, credentials_provider: DefaultCredentialsChain) -> TConfig;
+pub trait AwsClientBuilder {
+    type Client;
+    type Config;
+
+    fn from_config(config: Self::Config) -> Self::Client;
+    fn build_config(region: Region, credentials_provider: DefaultCredentialsChain) -> Self::Config;
 }
 
 // Macro to implement AwsClientBuilder for multiple services
 macro_rules! impl_aws_client_builder {
     ($client:ty, $config:ty) => {
-        impl AwsClientBuilder<$config, $client> for $client {
+        impl AwsClientBuilder for $client {
+            type Client = $client;
+            type Config = $config;
+
             fn from_config(config: $config) -> $client {
                 <$client>::from_conf(config)
             }
@@ -45,10 +51,7 @@ impl_aws_client_builder!(ElasticacheClient, ElasticacheConfig);
 impl_aws_client_builder!(Elbv2Client, Elbv2Config);
 
 // Generic initialization function
-pub async fn initialize_client<TConfig, TClient, C: AwsClientBuilder<TConfig, TClient>>(
-    region: Region,
-    profile: &str,
-) -> TClient {
+pub async fn initialize_client<C: AwsClientBuilder>(region: Region, profile: &str) -> C::Client {
     let credentials_provider = DefaultCredentialsChain::builder()
         .profile_name(profile)
         .build()
