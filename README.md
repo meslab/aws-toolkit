@@ -5,7 +5,17 @@ Command line utilities:
 ssm-session
 scale-in-ecs
 ses-suppression-list
-ecr-gitcoinfig
+ecr-gitconfig
+```
+
+## Usase
+
+Each command has `--help` section
+```bash
+ssm-session --help
+scale-in-ecs --help
+ses-suppression-list --help
+ecr-gitconfig --help
 ```
 
 ## Installation 
