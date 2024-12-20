@@ -1,3 +1,4 @@
+use aws_config::Region;
 use clap::Parser;
 use log::{debug, info};
 use aws_toolkit::{autoscaling, ecs, elasticache, elbv2, rds};
@@ -31,6 +32,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
 
     let args = Args::parse();
+    let region = Region::new(args.region.clone());
 
     let as_client = autoscaling::initialize_client(&args.region, &args.profile).await;
     let asgs = autoscaling::list_asgs(&as_client, &args.cluster, 0).await?;
@@ -41,7 +43,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         elasticache::list_replication_groups(&elc_client, &args.cluster).await?;
     info!("Replication Groups: {:?}", replication_groups);
 
-    let ecs_client = ecs::initialize_client(&args.region, &args.profile).await;
+    let ecs_client = ecs::initialize_client(region, &args.profile).await;
     let services = ecs::get_service_arns(&ecs_client, &args.cluster, 0).await?;
     info!("Services: {:?}", services);
 

@@ -1,3 +1,4 @@
+use aws_config::Region;
 use clap::Parser;
 use log::info;
 use aws_toolkit::ecs;
@@ -38,6 +39,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
 
     let args = Args::parse();
+    let region = Region::new(args.region.clone());
 
     let command = if let Some(exec) = args.exec {
         format!(
@@ -53,7 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
     };
 
-    let ecs_client = ecs::initialize_client(&args.region, &args.profile).await;
+    let ecs_client = ecs::initialize_client(region, &args.profile).await;
     let instance_id = if let Some(instance) = args.instance {
         instance
     } else {
