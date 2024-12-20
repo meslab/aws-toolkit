@@ -1,5 +1,6 @@
 use aws_config::Region;
-use aws_toolkit::codecommit;
+use aws_sdk_codecommit::Client as CodeCommitClient;
+use aws_toolkit::{client::initialize_client, codecommit};
 use clap::Parser;
 use git2::{Config, ConfigLevel};
 use log::info;
@@ -84,7 +85,8 @@ async fn main() -> io::Result<()> {
         for region in args.regions.iter() {
             let codecommit_region = Region::new(region.clone());
 
-            let client = codecommit::initialize_client(codecommit_region, profile).await;
+            let client =
+                initialize_client::<_, _, CodeCommitClient>(codecommit_region, profile).await;
             let base_repositories =
                 codecommit::list_exact_repositories(&client, &args.base, &args.exclude).await;
             info!("Base repositories: {:?}", base_repositories);
