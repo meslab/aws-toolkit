@@ -1,13 +1,14 @@
 use aws_config::Region;
+use aws_sdk_ecs::Client as EcsClient;
+use aws_toolkit::{client::initialize_client, ecs};
 use clap::Parser;
 use log::info;
-use aws_toolkit::ecs;
 use std::process::Command;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 #[clap(
-    version = "v0.1.5",
+    version = "v0.1.6",
     author = "Anton Sidorov tonysidrock@gmail.com",
     about = "Counts wwords frequency in a text file"
 )]
@@ -30,7 +31,7 @@ struct Args {
     #[clap(short, long, default_value = None)]
     instance: Option<String>,
 
-    #[clap(short='H', long)]
+    #[clap(short = 'H', long)]
     host: bool,
 }
 
@@ -55,7 +56,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
     };
 
-    let ecs_client = ecs::initialize_client(region, &args.profile).await;
+    let ecs_client = initialize_client::<_, _, EcsClient>(region, &args.profile).await;
     let instance_id = if let Some(instance) = args.instance {
         instance
     } else {

@@ -1,19 +1,5 @@
-use aws_config::default_provider::credentials::DefaultCredentialsChain;
-use aws_config::Region;
-use aws_sdk_ecs::{Client, Config};
+use aws_sdk_ecs::Client;
 use log::debug;
-
-pub async fn initialize_client(region: Region, profile: &str) -> Client {
-    let credentials_provider = DefaultCredentialsChain::builder()
-        .profile_name(profile)
-        .build()
-        .await;
-    let config = Config::builder()
-        .credentials_provider(credentials_provider)
-        .region(region)
-        .build();
-    Client::from_conf(config)
-}
 
 pub async fn get_service_arns(
     client: &Client,
@@ -152,15 +138,11 @@ pub async fn get_task_arn(
         .send();
     while let Some(tasks) = ecs_tasks_stream.next().await {
         debug!("Tasks: {:?}", tasks);
-        let task_arn = tasks
-        .unwrap()
-        .task_arns
-        .unwrap_or_default()
-        .pop();
+        let task_arn = tasks.unwrap().task_arns.unwrap_or_default().pop();
         if let Some(task_arn) = task_arn {
-            return Ok(task_arn)
+            return Ok(task_arn);
         }
-     }
+    }
     Err("Task not found".into())
 }
 

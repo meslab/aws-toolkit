@@ -1,14 +1,16 @@
 use aws_config::Region;
+use aws_sdk_sesv2::Client as Sesv2Client;
+use aws_toolkit::{client::initialize_client, sesv2};
+
 use clap::Parser;
 use log::debug;
-use aws_toolkit::sesv2;
 use std::fs::File;
 use std::io::Write;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 #[clap(
-    version = "v0.2.1",
+    version = "v0.2.2",
     author = "Anton Sidorov tonysidrock@gmail.com",
     about = "Exports ses suppression list"
 )]
@@ -33,7 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
     let region = Region::new(args.region.clone());
 
-    let sesv2_client = sesv2::initialize_client(region, &args.profile).await;
+    let sesv2_client = initialize_client::<_, _, Sesv2Client>(region, &args.profile).await;
 
     if let Ok(r) = sesv2::get_suppression_list(&sesv2_client, args.last).await {
         debug!("Result: {:?}", &r);
