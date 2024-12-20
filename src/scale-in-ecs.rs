@@ -40,26 +40,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
     let region = Region::new(args.region.clone());
 
-    let as_client =
-        initialize_client::<_, _, AutoScalingClient>(region.clone(), &args.profile).await;
+    let as_client = initialize_client::<AutoScalingClient>(region.clone(), &args.profile).await;
     let asgs = autoscaling::list_asgs(&as_client, &args.cluster, 0).await?;
     info!("ASGs: {:?}", asgs);
 
-    let elc_client =
-        initialize_client::<_, _, ElasticacheClient>(region.clone(), &args.profile).await;
+    let elc_client = initialize_client::<ElasticacheClient>(region.clone(), &args.profile).await;
     let replication_groups =
         elasticache::list_replication_groups(&elc_client, &args.cluster).await?;
     info!("Replication Groups: {:?}", replication_groups);
 
-    let ecs_client = initialize_client::<_, _, EcsClient>(region.clone(), &args.profile).await;
+    let ecs_client = initialize_client::<EcsClient>(region.clone(), &args.profile).await;
     let services = ecs::get_service_arns(&ecs_client, &args.cluster, 0).await?;
     info!("Services: {:?}", services);
 
-    let rds_client = initialize_client::<_, _, RdsClient>(region.clone(), &args.profile).await;
+    let rds_client = initialize_client::<RdsClient>(region.clone(), &args.profile).await;
     let db_instances = rds::list_db_instances(&rds_client, &args.cluster).await?;
     info!("DB Instances: {:?}", db_instances);
 
-    let elbv2_client = initialize_client::<_, _, Elbv2Client>(region.clone(), &args.profile).await;
+    let elbv2_client = initialize_client::<Elbv2Client>(region.clone(), &args.profile).await;
     let load_balancers = elbv2::list_load_balancers(&elbv2_client, &args.cluster).await?;
     info!("Load Balancers: {:?}", load_balancers);
 

@@ -35,7 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
     let region = Region::new(args.region.clone());
 
-    let sesv2_client = initialize_client::<_, _, Sesv2Client>(region, &args.profile).await;
+    let sesv2_client = initialize_client::<Sesv2Client>(region, &args.profile).await;
 
     if let Ok(r) = sesv2::get_suppression_list(&sesv2_client, args.last).await {
         debug!("Result: {:?}", &r);
