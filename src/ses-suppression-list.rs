@@ -1,3 +1,4 @@
+use aws_config::Region;
 use clap::Parser;
 use log::debug;
 use aws_toolkit::sesv2;
@@ -30,8 +31,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
 
     let args = Args::parse();
+    let region = Region::new(args.region.clone());
 
-    let sesv2_client = sesv2::initialize_client(&args.region, &args.profile).await;
+    let sesv2_client = sesv2::initialize_client(region, &args.profile).await;
 
     if let Ok(r) = sesv2::get_suppression_list(&sesv2_client, args.last).await {
         debug!("Result: {:?}", &r);

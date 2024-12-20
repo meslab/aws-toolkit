@@ -1,11 +1,10 @@
 use aws_config::default_provider::credentials::DefaultCredentialsChain;
-use aws_sdk_codecommit::config::Region;
+use aws_config::Region;
 use aws_sdk_codecommit::{Client, Config};
 use log::debug;
 
-pub async fn initialize_client(region: &str, profile: &str) -> Client {
-    let codecommit_region = Region::new(region.to_owned());
-
+pub async fn initialize_client(codecommit_region: Region, profile: &str) -> Client {
+    
     let credentials_provider = DefaultCredentialsChain::builder()
         .region(codecommit_region.clone())
         .profile_name(profile)

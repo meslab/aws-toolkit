@@ -1,10 +1,11 @@
+use aws_config::Region;
 use aws_toolkit::codecommit;
 use clap::Parser;
+use git2::{Config, ConfigLevel};
 use log::info;
 use std::fs::File;
 use std::io::{self, Write};
 use std::path::Path;
-use git2::{Config, ConfigLevel};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -81,7 +82,9 @@ async fn main() -> io::Result<()> {
 
     for profile in args.profiles.iter() {
         for region in args.regions.iter() {
-            let client = codecommit::initialize_client(region, profile).await;
+            let codecommit_region = Region::new(region.clone());
+
+            let client = codecommit::initialize_client(codecommit_region, profile).await;
             let base_repositories =
                 codecommit::list_exact_repositories(&client, &args.base, &args.exclude).await;
             info!("Base repositories: {:?}", base_repositories);
@@ -89,10 +92,10 @@ async fn main() -> io::Result<()> {
                 codecommit::list_repositories(&client, &args.include, &args.exclude).await;
             info!("Repositories: {:?}", repositories);
             for repo in base_repositories.unwrap() {
-                write_gitconfig(&mut file, &repo, region, profile).expect("Cannt write to file")
+                write_gitconfig(&mut file, &repo, region, profile).expect("Cannot write to file")
             }
             for repo in repositories.unwrap() {
-                write_gitconfig(&mut file, &repo, region, profile).expect("Cannt write to file")
+                write_gitconfig(&mut file, &repo, region, profile).expect("Cannot write to file")
             }
         }
     }

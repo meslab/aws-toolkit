@@ -1,18 +1,18 @@
 use aws_config::default_provider::credentials::DefaultCredentialsChain;
-use aws_sdk_sesv2::config::Region;
+use aws_config::Region;
 use aws_sdk_sesv2::{Client, Config};
 use chrono::DateTime;
 use log::{debug, info};
 use std::{thread, time};
 
-pub async fn initialize_client(region: &str, profile: &str) -> Client {
+pub async fn initialize_client(region: Region, profile: &str) -> Client {
     let credentials_provider = DefaultCredentialsChain::builder()
         .profile_name(profile)
         .build()
         .await;
     let sesv2_config = Config::builder()
         .credentials_provider(credentials_provider)
-        .region(Region::new(region.to_string()))
+        .region(region)
         .build();
 
     Client::from_conf(sesv2_config)
