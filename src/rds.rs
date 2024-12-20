@@ -1,19 +1,5 @@
-use aws_config::default_provider::credentials::DefaultCredentialsChain;
-use aws_sdk_rds::config::Region;
-use aws_sdk_rds::{Client, Config};
+use aws_sdk_rds::Client;
 use log::debug;
-
-pub async fn initialize_client(region: &str, profile: &str) -> Client {
-    let credentials_provider = DefaultCredentialsChain::builder()
-        .profile_name(profile)
-        .build()
-        .await;
-    let config = Config::builder()
-        .credentials_provider(credentials_provider)
-        .region(Region::new(region.to_owned()))
-        .build();
-    Client::from_conf(config)
-}
 
 pub async fn list_db_instances(
     client: &Client,
@@ -39,10 +25,7 @@ pub async fn list_db_instances(
                     .as_ref()
                     .unwrap()
                     .contains("available")
-                    || instance
-                        .db_instance_status
-                        .unwrap()
-                        .contains("stopped"))
+                    || instance.db_instance_status.unwrap().contains("stopped"))
             {
                 db_instances.push(instance.db_instance_identifier.unwrap());
             }
