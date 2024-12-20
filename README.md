@@ -1,6 +1,7 @@
 # AWS toolkit
 
-Command line utilities:
+This toolset has some command line utilities which help for day-to-day operations on AWS.
+
 ```
 ssm-session
 scale-in-ecs
@@ -8,7 +9,7 @@ ses-suppression-list
 ecr-gitconfig
 ```
 
-## Usase
+## How to use
 
 Each command has `--help` section
 ```bash
