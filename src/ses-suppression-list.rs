@@ -1,6 +1,6 @@
 use aws_config::Region;
 use aws_sdk_sesv2::Client as Sesv2Client;
-use aws_toolkit::{client::initialize_client, sesv2};
+use aws_toolkit::{client::initialize_client, sesv2, Result};
 
 use clap::Parser;
 use log::debug;
@@ -29,7 +29,7 @@ struct Args {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<()> {
     env_logger::init();
 
     let args = Args::parse();

@@ -1,3 +1,4 @@
+use crate::Result;
 use aws_sdk_autoscaling::Client;
 use log::debug;
 
@@ -5,7 +6,7 @@ pub async fn list_asgs(
     client: &Client,
     cluster: &str,
     desired_capacity: i32,
-) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+) -> Result<Vec<String>> {
     let mut asgs = Vec::new();
     let mut asg_stream = client
         .describe_auto_scaling_groups()
@@ -30,11 +31,7 @@ pub async fn list_asgs(
     Ok(asgs)
 }
 
-pub async fn scale_down_asg(
-    client: &Client,
-    asg_name: &str,
-    desired_capacity: i32,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn scale_down_asg(client: &Client, asg_name: &str, desired_capacity: i32) -> Result<()> {
     client
         .update_auto_scaling_group()
         .auto_scaling_group_name(asg_name)
