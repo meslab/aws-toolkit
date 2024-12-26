@@ -1,6 +1,6 @@
 use aws_config::Region;
 use aws_sdk_ecs::Client as EcsClient;
-use aws_toolkit::{client::initialize_client, ecs};
+use aws_toolkit::{client::initialize_client, ecs, Result};
 use clap::Parser;
 use log::info;
 use std::process::Command;
@@ -36,7 +36,7 @@ struct Args {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<()> {
     env_logger::init();
 
     let args = Args::parse();

@@ -1,10 +1,8 @@
+use crate::Result;
 use aws_sdk_codecommit::Client;
 use log::debug;
 
-async fn list_filtered_repositories_internal<F>(
-    client: &Client,
-    filter: F,
-) -> Result<Vec<String>, aws_sdk_codecommit::Error>
+async fn list_filtered_repositories_internal<F>(client: &Client, filter: F) -> Result<Vec<String>>
 where
     F: Fn(&str) -> bool + Send + Sync,
 {
@@ -30,7 +28,7 @@ pub async fn list_repositories(
     client: &Client,
     include: &[String],
     exclude: &[String],
-) -> Result<Vec<String>, aws_sdk_codecommit::Error> {
+) -> Result<Vec<String>> {
     let include: Vec<_> = include.iter().map(|x| x.as_str()).collect();
     let exclude: Vec<_> = exclude.iter().map(|x| x.as_str()).collect();
 
@@ -46,7 +44,7 @@ pub async fn list_exact_repositories(
     client: &Client,
     include: &[String],
     exclude: &[String],
-) -> Result<Vec<String>, aws_sdk_codecommit::Error> {
+) -> Result<Vec<String>> {
     let include: Vec<_> = include.iter().map(|x| x.as_str()).collect();
     let exclude: Vec<_> = exclude.iter().map(|x| x.as_str()).collect();
 

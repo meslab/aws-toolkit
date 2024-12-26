@@ -1,11 +1,11 @@
 use aws_config::Region;
 use aws_sdk_codecommit::Client as CodeCommitClient;
-use aws_toolkit::{client::initialize_client, codecommit};
+use aws_toolkit::{client::initialize_client, codecommit, Result};
 use clap::Parser;
 use git2::{Config, ConfigLevel};
 use log::info;
 use std::fs::File;
-use std::io::{self, Write};
+use std::io::Write;
 use std::path::Path;
 
 #[derive(Parser)]
@@ -46,7 +46,7 @@ fn write_gitconfig(
     repo: &str,
     region: &str,
     profile: &str,
-) -> Result<(), std::io::Error> {
+) -> Result<()> {
     writeln!(
         file,
         "[credential \"https://git-codecommit.{}.amazonaws.com/v1/repos/{}.git\"]",
@@ -57,11 +57,12 @@ fn write_gitconfig(
         "\thelper = !aws codecommit credential-helper $@ --profile {}",
         profile
     )?;
-    writeln!(file, "\tuseHttpPath = true")
+    writeln!(file, "\tuseHttpPath = true")?;
+    Ok(())
 }
 
 #[tokio::main]
-async fn main() -> io::Result<()> {
+async fn main() -> Result<()> {
     env_logger::init();
 
     let args = Args::parse();

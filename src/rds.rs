@@ -1,10 +1,8 @@
+use crate::Result;
 use aws_sdk_rds::Client;
 use log::debug;
 
-pub async fn list_db_instances(
-    client: &Client,
-    cluster: &str,
-) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+pub async fn list_db_instances(client: &Client, cluster: &str) -> Result<Vec<String>> {
     let mut db_instances = Vec::new();
     let mut db_instances_stream = client
         .describe_db_instances()
@@ -34,10 +32,7 @@ pub async fn list_db_instances(
     Ok(db_instances)
 }
 
-pub async fn disable_deletion_protection(
-    client: &Client,
-    db_instance_id: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn disable_deletion_protection(client: &Client, db_instance_id: &str) -> Result<()> {
     client
         .modify_db_instance()
         .db_instance_identifier(db_instance_id)
@@ -48,10 +43,7 @@ pub async fn disable_deletion_protection(
     Ok(())
 }
 
-pub async fn delete_db_instance(
-    client: &Client,
-    db_instance_id: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn delete_db_instance(client: &Client, db_instance_id: &str) -> Result<()> {
     client
         .delete_db_instance()
         .db_instance_identifier(db_instance_id)
@@ -61,10 +53,7 @@ pub async fn delete_db_instance(
     Ok(())
 }
 
-pub async fn stop_db_instance(
-    client: &Client,
-    db_instance_id: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn stop_db_instance(client: &Client, db_instance_id: &str) -> Result<()> {
     client
         .stop_db_instance()
         .db_instance_identifier(db_instance_id)
