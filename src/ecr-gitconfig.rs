@@ -1,6 +1,6 @@
 use aws_config::Region;
 use aws_sdk_codecommit::Client as CodeCommitClient;
-use aws_toolkit::{client::initialize_client, codecommit, Result};
+use aws_toolkit::{client::initialize_client, codecommit, AppResult};
 use clap::Parser;
 use git2::{Config, ConfigLevel};
 use log::info;
@@ -46,7 +46,7 @@ fn write_gitconfig(
     repo: &str,
     region: &str,
     profile: &str,
-) -> Result<()> {
+) -> AppResult<()> {
     writeln!(
         file,
         "[credential \"https://git-codecommit.{}.amazonaws.com/v1/repos/{}.git\"]",
@@ -62,7 +62,7 @@ fn write_gitconfig(
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> AppResult<()> {
     env_logger::init();
 
     let args = Args::parse();

@@ -1,8 +1,8 @@
-use crate::Result;
+use crate::AppResult;
 use aws_sdk_elasticache::Client;
 use log::debug;
 
-pub async fn list_replication_groups(client: &Client, cluster: &str) -> Result<Vec<String>> {
+pub async fn list_replication_groups(client: &Client, cluster: &str) -> AppResult<Vec<String>> {
     let mut replication_groups = Vec::new();
     let mut replication_groups_stream = client
         .describe_replication_groups()
@@ -27,7 +27,7 @@ pub async fn list_replication_groups(client: &Client, cluster: &str) -> Result<V
     Ok(replication_groups)
 }
 
-pub async fn delete_replication_group(client: &Client, replication_group_id: &str) -> Result<()> {
+pub async fn delete_replication_group(client: &Client, replication_group_id: &str) -> AppResult<()> {
     client
         .delete_replication_group()
         .replication_group_id(replication_group_id)

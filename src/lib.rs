@@ -8,4 +8,4 @@ mod errors;
 pub mod rds;
 pub mod sesv2;
 
-pub use self::errors::{Error, Result};
+pub use self::errors::{AppError, AppResult};

@@ -5,7 +5,7 @@ use aws_sdk_elasticache::Client as ElasticacheClient;
 use aws_sdk_elasticloadbalancingv2::Client as Elbv2Client;
 use aws_sdk_rds::Client as RdsClient;
 
-use aws_toolkit::{autoscaling, client::initialize_client, ecs, elasticache, elbv2, rds, Result};
+use aws_toolkit::{autoscaling, client::initialize_client, ecs, elasticache, elbv2, rds, AppResult};
 use clap::Parser;
 use log::{debug, info};
 
@@ -34,7 +34,7 @@ struct Args {
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> AppResult<()> {
     env_logger::init();
 
     let args = Args::parse();

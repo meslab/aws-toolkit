@@ -1,4 +1,4 @@
-use crate::Result;
+use crate::AppResult;
 use aws_sdk_ecs::Client;
 use log::debug;
 
@@ -6,7 +6,7 @@ pub async fn get_service_arns(
     client: &Client,
     cluster: &str,
     desired_count: i32,
-) -> Result<Vec<String>> {
+) -> AppResult<Vec<String>> {
     let mut service_arns: Vec<String> = Vec::new();
     let mut services_stream = client
         .list_services()
@@ -57,7 +57,7 @@ pub async fn scale_down_service(
     cluster: &str,
     service_arn: &str,
     desired_count: i32,
-) -> Result<()> {
+) -> AppResult<()> {
     match client
         .update_service()
         .cluster(cluster)
@@ -76,7 +76,7 @@ pub async fn scale_down_service(
 }
 
 #[async_recursion::async_recursion]
-pub async fn delete_service(client: &Client, cluster: &str, service_arn: &str) -> Result<()> {
+pub async fn delete_service(client: &Client, cluster: &str, service_arn: &str) -> AppResult<()> {
     match client
         .delete_service()
         .cluster(cluster)
@@ -93,7 +93,7 @@ pub async fn delete_service(client: &Client, cluster: &str, service_arn: &str) -
     }
 }
 
-pub async fn get_service_arn(ecs_client: &Client, cluster: &str, service: &str) -> Result<String> {
+pub async fn get_service_arn(ecs_client: &Client, cluster: &str, service: &str) -> AppResult<String> {
     let mut ecs_services_stream = ecs_client
         .list_services()
         .cluster(cluster)
@@ -117,7 +117,7 @@ pub async fn get_service_arn(ecs_client: &Client, cluster: &str, service: &str) 
     Err("Service not found".into())
 }
 
-pub async fn get_task_arn(ecs_client: &Client, cluster: &str, service: &str) -> Result<String> {
+pub async fn get_task_arn(ecs_client: &Client, cluster: &str, service: &str) -> AppResult<String> {
     let mut ecs_tasks_stream = ecs_client
         .list_tasks()
         .cluster(cluster)
@@ -139,7 +139,7 @@ pub async fn get_task_container_arn(
     ecs_client: &Client,
     cluster: &str,
     task_arn: &str,
-) -> Result<String> {
+) -> AppResult<String> {
     let describe_tasks_result = ecs_client
         .describe_tasks()
         .cluster(cluster)
@@ -159,7 +159,7 @@ pub async fn get_container_arn(
     ecs_client: &Client,
     cluster: &str,
     container_instance_arn: &str,
-) -> Result<String> {
+) -> AppResult<String> {
     let describe_container_instances_result = ecs_client
         .describe_container_instances()
         .cluster(cluster)

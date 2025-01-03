@@ -1,8 +1,8 @@
+use crate::AppResult;
 use aws_sdk_elasticloadbalancingv2::Client;
 use log::debug;
-use crate::Result;
 
-pub async fn list_load_balancers(client: &Client, cluster: &str) -> Result<Vec<String>> {
+pub async fn list_load_balancers(client: &Client, cluster: &str) -> AppResult<Vec<String>> {
     let mut load_balancers = Vec::new();
     let mut load_balancers_stream = client.describe_load_balancers().into_paginator().send();
 
@@ -17,7 +17,7 @@ pub async fn list_load_balancers(client: &Client, cluster: &str) -> Result<Vec<S
     Ok(load_balancers)
 }
 
-pub async fn delete_load_balancer(client: &Client, load_balancer_arn: &str) -> Result<()> {
+pub async fn delete_load_balancer(client: &Client, load_balancer_arn: &str) -> AppResult<()> {
     client
         .delete_load_balancer()
         .load_balancer_arn(load_balancer_arn)

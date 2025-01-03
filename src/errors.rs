@@ -1,2 +1,2 @@
-pub type Result<T> = std::result::Result<T, Error>;
-pub type Error = Box<dyn std::error::Error>;
+pub type AppResult<T> = std::result::Result<T, AppError>;
+pub type AppError = Box<dyn std::error::Error>;

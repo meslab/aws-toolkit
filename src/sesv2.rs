@@ -1,4 +1,4 @@
-use crate::Result;
+use crate::AppResult;
 use aws_sdk_sesv2::Client;
 use chrono::DateTime;
 use log::{debug, info};
@@ -7,7 +7,7 @@ use std::{thread, time};
 pub async fn get_suppression_list(
     sesv2_client: &Client,
     last_count_days: Option<u32>,
-) -> Result<Vec<(String, String, String)>> {
+) -> AppResult<Vec<(String, String, String)>> {
     let mut sesv2_addresses_stream = sesv2_client
         .list_suppressed_destinations()
         .page_size(1000)
