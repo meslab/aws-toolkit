@@ -26,6 +26,9 @@ struct Args {
 
     #[clap(short, long, default_value = None)]
     last: Option<u32>,
+
+    #[clap(short, long, help = "Include suppression date")]
+    full: bool,
 }
 
 #[tokio::main]
@@ -39,10 +42,14 @@ async fn main() -> AppResult<()> {
 
     if let Ok(r) = sesv2::get_suppression_list(&sesv2_client, args.last).await {
         debug!("Result: {:?}", &r);
-        let mut file = File::create(format!("./{}", &args.output)).unwrap();
+        let mut file = File::create(format!("./{}", &args.output))?;
 
         for (email, reason, date) in &r {
-            writeln!(file, "{},{},{}", email, reason, date).unwrap();
+            if args.full {
+                writeln!(file, "{},{},{}", email, reason, date)?;
+            } else {
+                writeln!(file, "{},{}", email, reason)?;
+            }
         }
         println!("Total {} email addresses", r.len())
     }
