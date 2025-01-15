@@ -30,7 +30,7 @@ struct Args {
     #[clap(short, long)]
     print_failed_only: bool,
 
-    #[clap(short, long)]
+    #[clap(short, long, conflicts_with = "failed_only")]
     all: bool,
 }
 
