@@ -12,7 +12,6 @@ use clap::Parser;
     about = "Release codepipeline"
 )]
 struct Args {
-    
     #[clap(short, long, default_value = "eu-central-1")]
     region: String,
 
@@ -41,15 +40,25 @@ async fn main() -> AppResult<()> {
 
     let codepipeline_client =
         initialize_client::<CodepipelineClient>(region.clone(), &args.profile).await;
-    let pipelines = codepipeline::list_pipelines(
-        &codepipeline_client,
-        &args.prefix_match,
-        &args.prefix_exclude,
-    )
-    .await?;
+    let pipelines = if args.failed_only {
+        codepipeline::list_failed_pipelines(
+            &codepipeline_client,
+            &args.prefix_match,
+            &args.prefix_exclude,
+        )
+        .await?
+    } else {
+        codepipeline::list_pipelines(
+            &codepipeline_client,
+            &args.prefix_match,
+            &args.prefix_exclude,
+        )
+        .await?
+    };
 
     for pipeline in pipelines {
         println!("{}", pipeline);
+        codepipeline::release_pipeline(&codepipeline_client, &pipeline).await?;
     }
 
     Ok(())
