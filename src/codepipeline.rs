@@ -57,13 +57,17 @@ pub async fn list_failed_pipelines(
     };
 
     let input = list_filtered_pipelines_internal(client, filter).await?;
-    list_failed_pipelines_internal(client, &input).await
+    list_state_pipelines_internal(client, &input).await
 }
 
-async fn list_failed_pipelines_internal(
+async fn list_failed_pipelines_internal<F>(
     client: &Client,
     input: &Vec<String>,
-) -> AppResult<Vec<String>> {
+    filter: F
+) -> AppResult<Vec<String>> 
+where
+    F: Fn(&str) -> bool + Send + Sync,
+{
     let mut pipelines = Vec::new();
 
     for pipeline in input {
