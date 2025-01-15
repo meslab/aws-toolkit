@@ -21,6 +21,8 @@ env_logger = "0.11.6"
 log = "0.4.22"
 tokio = { version = "1.43.0", features = ["macros", "rt-multi-thread"] }
 git2 = "0.20.0"
+aws-sdk-codepipeline = { version = "1.62.0", features = ["behavior-version-latest"] }
+aws-sdk-dynamodb = { version = "1.59.0", features = ["behavior-version-latest"] }
 
 [profile.release]
 lto = true
@@ -42,3 +44,7 @@ path = "src/ecr-gitconfig.rs"
 [[bin]]
 name = "ses-suppression-list"
 path = "src/ses-suppression-list.rs"
+
+[[bin]]
+name = "release-codepipelines"
+path = "src/release-codepipelines.rs"

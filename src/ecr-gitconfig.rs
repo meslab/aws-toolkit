@@ -13,7 +13,7 @@ use std::path::Path;
 #[clap(
     version = "v0.1.2",
     author = "Anton Sidorov tonysidrock@gmail.com",
-    about = "Counts wwords frequency in a text file"
+    about = "Updates custom gitconfig file"
 )]
 struct Args {
     #[clap(short, long, default_value = "/tmp/gitconfig")]
