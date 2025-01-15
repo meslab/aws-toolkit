@@ -29,6 +29,9 @@ struct Args {
 
     #[clap(short, long)]
     print_failed_only: bool,
+
+    #[clap(short, long)]
+    all: bool,
 }
 
 #[tokio::main]
@@ -42,6 +45,13 @@ async fn main() -> AppResult<()> {
         initialize_client::<CodepipelineClient>(region.clone(), &args.profile).await;
     let pipelines = if args.failed_only {
         codepipeline::list_failed_pipelines(
+            &codepipeline_client,
+            &args.prefix_match,
+            &args.prefix_exclude,
+        )
+        .await?
+    } else if args.all {
+        codepipeline::list_all_pipelines(
             &codepipeline_client,
             &args.prefix_match,
             &args.prefix_exclude,

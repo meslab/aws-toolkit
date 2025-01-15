@@ -29,7 +29,7 @@ where
     Ok(pipelines)
 }
 
-pub async fn list_pipelines(
+pub async fn list_all_pipelines(
     client: &Client,
     include: &[String],
     exclude: &[String],
@@ -42,7 +42,15 @@ pub async fn list_pipelines(
             && exclude.iter().all(|&x| !pipeline_name.contains(x))
     };
 
-    let input = list_filtered_pipelines_internal(client, filter).await?;
+    list_filtered_pipelines_internal(client, filter).await
+}
+
+pub async fn list_pipelines(
+    client: &Client,
+    include: &[String],
+    exclude: &[String],
+) -> AppResult<Vec<String>> {
+    let input = list_all_pipelines(client, include, exclude).await?;
 
     let state_filter =
         |x: &StageState| [InProgress].contains(&x.latest_execution.as_ref().unwrap().status);
@@ -55,15 +63,7 @@ pub async fn list_failed_pipelines(
     include: &[String],
     exclude: &[String],
 ) -> AppResult<Vec<String>> {
-    let include: Vec<_> = include.iter().map(|x| x.as_str()).collect();
-    let exclude: Vec<_> = exclude.iter().map(|x| x.as_str()).collect();
-
-    let filter = |pipeline_name: &str| {
-        include.iter().any(|&x| pipeline_name.contains(x))
-            && exclude.iter().all(|&x| !pipeline_name.contains(x))
-    };
-
-    let input = list_filtered_pipelines_internal(client, filter).await?;
+    let input = list_all_pipelines(client, include, exclude).await?;
 
     let state_filter = |x: &StageState| {
         [Failed, InProgress].contains(&x.latest_execution.as_ref().unwrap().status)
