@@ -32,6 +32,9 @@ struct Args {
 
     #[clap(short, long, conflicts_with = "failed_only")]
     all: bool,
+
+    #[clap(short, long)]
+    dry_run: bool,
 }
 
 #[tokio::main]
@@ -68,7 +71,9 @@ async fn main() -> AppResult<()> {
 
     for pipeline in pipelines {
         println!("{}", pipeline);
-        codepipeline::release_pipeline(&codepipeline_client, &pipeline).await?;
+        if !args.dry_run {
+            codepipeline::release_pipeline(&codepipeline_client, &pipeline).await?;
+        }
     }
 
     Ok(())

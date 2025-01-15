@@ -1,6 +1,6 @@
 use crate::AppResult;
 use aws_sdk_codepipeline::error::SdkError;
-use aws_sdk_codepipeline::types::StageExecutionStatus::{Failed, InProgress};
+use aws_sdk_codepipeline::types::StageExecutionStatus::{Failed, InProgress, Succeeded};
 use aws_sdk_codepipeline::types::StageState;
 use aws_sdk_codepipeline::Client;
 use log::debug;
@@ -52,10 +52,17 @@ pub async fn list_pipelines(
 ) -> AppResult<Vec<String>> {
     let input = list_all_pipelines(client, include, exclude).await?;
 
-    let state_filter =
-        |x: &StageState| ![InProgress].contains(&x.latest_execution.as_ref().unwrap().status);
+    let filter_failure = |x: &StageState| {
+        let status = &x.latest_execution.as_ref().unwrap().status;
+        [Succeeded, Failed].contains(status)
+    };
 
-    list_state_pipelines_internal(client, &input, state_filter).await
+    let filter_progress = |x: &StageState| {
+        let status = &x.latest_execution.as_ref().unwrap().status;
+        ![InProgress].contains(status)
+    };
+
+    list_state_pipelines_internal(client, &input, filter_failure, filter_progress).await
 }
 
 pub async fn list_failed_pipelines(
@@ -65,21 +72,28 @@ pub async fn list_failed_pipelines(
 ) -> AppResult<Vec<String>> {
     let input = list_all_pipelines(client, include, exclude).await?;
 
-    let state_filter = |x: &StageState| {
+    let filter_failure = |x: &StageState| {
         let status = &x.latest_execution.as_ref().unwrap().status;
-        [Failed].contains(status) && ![InProgress].contains(status)
+        [Failed].contains(status)
     };
 
-    list_state_pipelines_internal(client, &input, state_filter).await
+    let filter_progress = |x: &StageState| {
+        let status = &x.latest_execution.as_ref().unwrap().status;
+        ![InProgress].contains(status)
+    };
+
+    list_state_pipelines_internal(client, &input, filter_failure, filter_progress).await
 }
 
-async fn list_state_pipelines_internal<F>(
+async fn list_state_pipelines_internal<Ff, Fp>(
     client: &Client,
     input: &Vec<String>,
-    filter: F,
+    filter_failure: Ff,
+    filter_progress: Fp,
 ) -> AppResult<Vec<String>>
 where
-    F: Fn(&StageState) -> bool + Send + Sync,
+    Ff: Fn(&StageState) -> bool + Send + Sync,
+    Fp: Fn(&StageState) -> bool + Send + Sync,
 {
     let mut pipelines = Vec::new();
 
@@ -87,7 +101,8 @@ where
         let state = client.get_pipeline_state().name(pipeline).send().await?;
         if state
             .stage_states
-            .filter(|stage_states| stage_states.iter().any(&filter))
+            .filter(|stage_states| stage_states.iter().any(&filter_failure))
+            .filter(|stage_states| stage_states.iter().all(&filter_progress))
             .is_some()
         {
             pipelines.push(pipeline.to_owned());
