@@ -85,15 +85,15 @@ pub async fn list_failed_pipelines(
     list_state_pipelines_internal(client, &input, filter_failure, filter_progress).await
 }
 
-async fn list_state_pipelines_internal<F, T>(
+async fn list_state_pipelines_internal<Ff, Fp>(
     client: &Client,
     input: &Vec<String>,
-    filter_failure: F,
-    filter_progress: T,
+    filter_failure: Ff,
+    filter_progress: Fp,
 ) -> AppResult<Vec<String>>
 where
-    F: Fn(&StageState) -> bool + Send + Sync,
-    T: Fn(&StageState) -> bool + Send + Sync,
+    Ff: Fn(&StageState) -> bool + Send + Sync,
+    Fp: Fn(&StageState) -> bool + Send + Sync,
 {
     let mut pipelines = Vec::new();
 
