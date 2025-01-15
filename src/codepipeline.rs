@@ -1,7 +1,10 @@
 use crate::AppResult;
+use aws_sdk_codepipeline::error::SdkError;
 use aws_sdk_codepipeline::types::StageExecutionStatus::{Failed, InProgress};
 use aws_sdk_codepipeline::Client;
 use log::debug;
+use std::time::Duration;
+use tokio::time::sleep;
 
 async fn list_filtered_pipelines_internal<F>(client: &Client, filter: F) -> AppResult<Vec<String>>
 where
@@ -68,9 +71,9 @@ async fn list_failed_pipelines_internal(
         if state
             .stage_states
             .filter(|stage_states| {
-                stage_states
-                    .iter()
-                    .any(|x| [Failed, InProgress].contains(&x.latest_execution.as_ref().unwrap().status))
+                stage_states.iter().any(|x| {
+                    [Failed, InProgress].contains(&x.latest_execution.as_ref().unwrap().status)
+                })
             })
             .is_some()
         {
@@ -83,10 +86,32 @@ async fn list_failed_pipelines_internal(
 }
 
 pub async fn release_pipeline(client: &Client, pipeline_name: &str) -> AppResult<()> {
-    client
-        .start_pipeline_execution()
-        .name(pipeline_name)
-        .send()
-        .await?;
-    Ok(())
+    let max_retries = 3;
+    let mut retries = 0;
+
+    loop {
+        match client
+            .start_pipeline_execution()
+            .name(pipeline_name)
+            .send()
+            .await
+        {
+            Ok(_) => return Ok(()), // Success, exit the loop
+            Err(SdkError::ServiceError(service_error)) => {
+                if let Some(code) = service_error.err().meta().code() {
+                    if code == "ThrottlingException" && retries < max_retries {
+                        retries += 1;
+                        eprintln!(
+                            "ThrottlingException encountered. Retrying in 5 seconds... (attempt {}/{})",
+                            retries, max_retries
+                        );
+                        sleep(Duration::from_secs(5)).await;
+                        continue;
+                    }
+                }
+                return Err(SdkError::ServiceError(service_error).into());
+            }
+            Err(err) => return Err(err.into()), // Propagate non-service errors
+        }
+    }
 }
