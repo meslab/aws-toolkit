@@ -98,6 +98,24 @@ where
     Ok(pipelines)
 }
 
+pub async fn release_pipelines<'a, F, Fut>(
+    client: &'a Client,
+    include: &'a [String],
+    exclude: &'a [String],
+    pipeline_names_getter: F,
+) -> AppResult<()>
+where
+    F: Fn(&'a Client, &'a [String], &'a [String]) -> Fut + Send + Sync,
+    Fut: std::future::Future<Output = AppResult<Vec<String>>>,
+{
+    let pipelines = pipeline_names_getter(client, include, exclude).await?;
+    for pipeline in pipelines {
+        println!("{}", &pipeline);
+        release_pipeline(client, &pipeline).await?;
+    }
+    Ok(())
+}
+
 pub async fn release_pipeline(client: &Client, pipeline_name: &str) -> AppResult<()> {
     let max_retries = 3;
     let mut retries = 0;
