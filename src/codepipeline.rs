@@ -1,6 +1,7 @@
 use crate::AppResult;
 use aws_sdk_codepipeline::error::SdkError;
 use aws_sdk_codepipeline::types::StageExecutionStatus::{Failed, InProgress};
+use aws_sdk_codepipeline::types::StageState;
 use aws_sdk_codepipeline::Client;
 use log::debug;
 use std::time::Duration;
@@ -41,8 +42,14 @@ pub async fn list_pipelines(
             && exclude.iter().all(|&x| !pipeline_name.contains(x))
     };
 
-    list_filtered_pipelines_internal(client, filter).await
+    let input = list_filtered_pipelines_internal(client, filter).await?;
+
+    let state_filter =
+        |x: &StageState| [InProgress].contains(&x.latest_execution.as_ref().unwrap().status);
+
+    list_state_pipelines_internal(client, &input, state_filter).await
 }
+
 pub async fn list_failed_pipelines(
     client: &Client,
     include: &[String],
@@ -57,16 +64,21 @@ pub async fn list_failed_pipelines(
     };
 
     let input = list_filtered_pipelines_internal(client, filter).await?;
-    list_state_pipelines_internal(client, &input).await
+
+    let state_filter = |x: &StageState| {
+        [Failed, InProgress].contains(&x.latest_execution.as_ref().unwrap().status)
+    };
+
+    list_state_pipelines_internal(client, &input, state_filter).await
 }
 
-async fn list_failed_pipelines_internal<F>(
+async fn list_state_pipelines_internal<F>(
     client: &Client,
     input: &Vec<String>,
-    filter: F
-) -> AppResult<Vec<String>> 
+    filter: F,
+) -> AppResult<Vec<String>>
 where
-    F: Fn(&str) -> bool + Send + Sync,
+    F: Fn(&StageState) -> bool + Send + Sync,
 {
     let mut pipelines = Vec::new();
 
@@ -74,11 +86,7 @@ where
         let state = client.get_pipeline_state().name(pipeline).send().await?;
         if state
             .stage_states
-            .filter(|stage_states| {
-                stage_states.iter().any(|x| {
-                    [Failed, InProgress].contains(&x.latest_execution.as_ref().unwrap().status)
-                })
-            })
+            .filter(|stage_states| stage_states.iter().any(&filter))
             .is_some()
         {
             pipelines.push(pipeline.to_owned());

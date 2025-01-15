@@ -55,6 +55,7 @@ install: all
 	cp target/release/scale-in-ecs ~/.local/bin
 	cp target/release/ecr-gitconfig ~/.local/bin
 	cp target/release/ses-suppression-list ~/.local/bin
+	cp target/release/release-codepipelines ~/.local/bin
 
 clean:
 	cargo clean
@@ -65,5 +66,6 @@ uninstall: clean
 	rm -f ~/.local/bin/scale-in-ecs
 	rm -f ~/.local/bin/ecr-gitconfig
 	rm -f ~/.local/bin/ses-suppression-list
+	rm -f ~/.local/bin/release-codepipelines
 
 .PHONY: rust-version format lint test run build ssm-session scale-in-ecs ecr-gitconfig ses-suppression-list release install clean uninstall all
