@@ -52,8 +52,10 @@ pub async fn list_pipelines(
 ) -> AppResult<Vec<String>> {
     let input = list_all_pipelines(client, include, exclude).await?;
 
-    let state_filter =
-        |x: &StageState| ![InProgress].contains(&x.latest_execution.as_ref().unwrap().status);
+    let state_filter = |x: &StageState| {
+        let status = &x.latest_execution.as_ref().unwrap().status;
+        ![InProgress].contains(status)
+    };
 
     list_state_pipelines_internal(client, &input, state_filter).await
 }
