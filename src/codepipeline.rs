@@ -53,7 +53,7 @@ pub async fn list_pipelines(
     let input = list_all_pipelines(client, include, exclude).await?;
 
     let state_filter =
-        |x: &StageState| [InProgress].contains(&x.latest_execution.as_ref().unwrap().status);
+        |x: &StageState| ![InProgress].contains(&x.latest_execution.as_ref().unwrap().status);
 
     list_state_pipelines_internal(client, &input, state_filter).await
 }
@@ -66,7 +66,8 @@ pub async fn list_failed_pipelines(
     let input = list_all_pipelines(client, include, exclude).await?;
 
     let state_filter = |x: &StageState| {
-        [Failed, InProgress].contains(&x.latest_execution.as_ref().unwrap().status)
+        let status = &x.latest_execution.as_ref().unwrap().status;
+        [Failed].contains(status) && ![InProgress].contains(status)
     };
 
     list_state_pipelines_internal(client, &input, state_filter).await
