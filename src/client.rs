@@ -2,6 +2,7 @@ use aws_config::default_provider::credentials::DefaultCredentialsChain;
 use aws_config::Region;
 use aws_sdk_autoscaling::{Client as AutoScalingClient, Config as AutoScalingConfig};
 use aws_sdk_codecommit::{Client as CodeCommitClient, Config as CodeCommitConfig};
+use aws_sdk_codepipeline::{Client as CodepipelineClient, Config as CodepipelineConfig};
 use aws_sdk_ecs::{Client as EcsClient, Config as EcsConfig};
 use aws_sdk_elasticache::{Client as ElasticacheClient, Config as ElasticacheConfig};
 use aws_sdk_elasticloadbalancingv2::{Client as Elbv2Client, Config as Elbv2Config};
@@ -49,6 +50,7 @@ impl_aws_client_builder!(Sesv2Client, Sesv2Config);
 impl_aws_client_builder!(CodeCommitClient, CodeCommitConfig);
 impl_aws_client_builder!(ElasticacheClient, ElasticacheConfig);
 impl_aws_client_builder!(Elbv2Client, Elbv2Config);
+impl_aws_client_builder!(CodepipelineClient, CodepipelineConfig);
 
 // Generic initialization function
 pub async fn initialize_client<C: AwsClientBuilder>(region: Region, profile: &str) -> C::Client {

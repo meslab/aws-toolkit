@@ -7,6 +7,7 @@ ssm-session
 scale-in-ecs
 ses-suppression-list
 ecr-gitconfig
+release-codepipelines
 ```
 
 ## How to use
@@ -17,6 +18,7 @@ ssm-session --help
 scale-in-ecs --help
 ses-suppression-list --help
 ecr-gitconfig --help
+release-codepipelines --help
 ```
 
 ## Installation 
