@@ -27,9 +27,6 @@ struct Args {
     #[clap(short, long)]
     failed_only: bool,
 
-    #[clap(short, long)]
-    print_failed_only: bool,
-
     #[clap(short, long, conflicts_with = "failed_only")]
     all: bool,
 
