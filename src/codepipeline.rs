@@ -89,6 +89,7 @@ pub async fn release_pipeline(client: &Client, pipeline_name: &str) -> AppResult
     let max_retries = 3;
     let mut retries = 0;
 
+    sleep(Duration::from_secs(1)).await;
     loop {
         match client
             .start_pipeline_execution()
@@ -102,16 +103,16 @@ pub async fn release_pipeline(client: &Client, pipeline_name: &str) -> AppResult
                     if code == "ThrottlingException" && retries < max_retries {
                         retries += 1;
                         eprintln!(
-                            "ThrottlingException encountered. Retrying in 5 seconds... (attempt {}/{})",
-                            retries, max_retries
+                            "ThrottlingException encountered. Retrying in {} seconds... (attempt {}/{})",
+                            5 * retries, retries, max_retries
                         );
-                        sleep(Duration::from_secs(5)).await;
+                        sleep(Duration::from_secs(5 * retries)).await;
                         continue;
                     }
                 }
                 return Err(SdkError::ServiceError(service_error).into());
             }
-            Err(err) => return Err(err.into()), // Propagate non-service errors
+            Err(err) => return Err(err.into()),
         }
     }
 }
