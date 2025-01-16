@@ -34,12 +34,12 @@ pub async fn list_all_pipelines(
     include: &[String],
     exclude: &[String],
 ) -> AppResult<Vec<String>> {
-    let include: Vec<_> = include.iter().map(|x| x.as_str()).collect();
-    let exclude: Vec<_> = exclude.iter().map(|x| x.as_str()).collect();
+    let include = include.to_vec();
+    let exclude = exclude.to_vec();
 
     let filter = |pipeline_name: &str| {
-        include.iter().any(|&x| pipeline_name.contains(x))
-            && exclude.iter().all(|&x| !pipeline_name.contains(x))
+        include.iter().any(|x| pipeline_name.contains(x))
+            && exclude.iter().all(|x| !pipeline_name.contains(x))
     };
 
     list_filtered_pipelines_internal(client, filter).await
