@@ -58,7 +58,7 @@ pub async fn delete_db_instance_with_final_snapshot(
     db_instance_id: &str,
 ) -> AppResult<()> {
     let now = Utc::now();
-    let now_formatted = now.format("%Y-%m-%dT%H:%M:%S");
+    let now_formatted = now.format("%Y-%m-%dT%H-%M");
     client
         .delete_db_instance()
         .db_instance_identifier(db_instance_id)
