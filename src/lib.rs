@@ -7,7 +7,9 @@ pub mod elasticache;
 pub mod elbv2;
 pub mod rds;
 pub mod sesv2;
+mod utils;
 
 mod errors;
 
 pub use self::errors::{AppError, AppResult};
+pub(crate) use utils::sanitize_string;

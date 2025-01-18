@@ -1,4 +1,4 @@
-use crate::AppResult;
+use crate::{sanitize_string, AppResult};
 use aws_sdk_rds::Client;
 use chrono::{self, Utc};
 use log::debug;
@@ -58,12 +58,14 @@ pub async fn delete_db_instance_with_final_snapshot(
     db_instance_id: &str,
 ) -> AppResult<()> {
     let now = Utc::now();
-    let now_formatted = now.format("%Y-%m-%dT%H-%M");
+    let now_formatted = now.format("%Y-%m-%d-%H-%M");
+    let final_snapshot_identifier =
+        sanitize_string(&format!("{}-{}", db_instance_id, now_formatted));
     client
         .delete_db_instance()
         .db_instance_identifier(db_instance_id)
         .skip_final_snapshot(false)
-        .final_db_snapshot_identifier(format!("{}-{}", db_instance_id, now_formatted))
+        .final_db_snapshot_identifier(final_snapshot_identifier)
         .send()
         .await?;
     Ok(())
