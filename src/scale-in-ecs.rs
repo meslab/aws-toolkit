@@ -31,7 +31,7 @@ struct Args {
     #[clap(short, long, default_value = "false")]
     delete: bool,
 
-    #[clap(short, long, default_value = "false")]
+    #[clap(short = 'f', long, default_value = "false")]
     skip_final_rds_snapshot: bool,
 
     #[clap(short, long, default_value = "false")]
@@ -80,7 +80,7 @@ async fn main() -> AppResult<()> {
             }
         }
     }
-    
+
     if args.scaledown {
         if !db_instances.is_empty() {
             println!("Stopping RDS instances.");
