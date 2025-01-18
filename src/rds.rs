@@ -1,5 +1,6 @@
 use crate::AppResult;
 use aws_sdk_rds::Client;
+use chrono::{self, Utc};
 use log::debug;
 
 pub async fn list_db_instances(client: &Client, cluster: &str) -> AppResult<Vec<String>> {
@@ -18,12 +19,8 @@ pub async fn list_db_instances(client: &Client, cluster: &str) -> AppResult<Vec<
                 .as_ref()
                 .unwrap()
                 .contains(cluster)
-                && (instance
-                    .db_instance_status
-                    .as_ref()
-                    .unwrap()
-                    .contains("available")
-                    || instance.db_instance_status.unwrap().contains("stopped"))
+                && ["available", "stopped"]
+                    .contains(&instance.db_instance_status.as_ref().unwrap().as_str())
             {
                 db_instances.push(instance.db_instance_identifier.unwrap());
             }
@@ -43,11 +40,30 @@ pub async fn disable_deletion_protection(client: &Client, db_instance_id: &str) 
     Ok(())
 }
 
-pub async fn delete_db_instance(client: &Client, db_instance_id: &str) -> AppResult<()> {
+pub async fn delete_db_instance_skip_final_snapshot(
+    client: &Client,
+    db_instance_id: &str,
+) -> AppResult<()> {
     client
         .delete_db_instance()
         .db_instance_identifier(db_instance_id)
         .skip_final_snapshot(true)
+        .send()
+        .await?;
+    Ok(())
+}
+
+pub async fn delete_db_instance_with_final_snapshot(
+    client: &Client,
+    db_instance_id: &str,
+) -> AppResult<()> {
+    let now = Utc::now();
+    let now_formatted = now.format("%Y-%m-%dT%H:%M:%S");
+    client
+        .delete_db_instance()
+        .db_instance_identifier(db_instance_id)
+        .skip_final_snapshot(false)
+        .final_db_snapshot_identifier(format!("{}-{}", db_instance_id, now_formatted))
         .send()
         .await?;
     Ok(())

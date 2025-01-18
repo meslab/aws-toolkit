@@ -5,7 +5,9 @@ use aws_sdk_elasticache::Client as ElasticacheClient;
 use aws_sdk_elasticloadbalancingv2::Client as Elbv2Client;
 use aws_sdk_rds::Client as RdsClient;
 
-use aws_toolkit::{autoscaling, client::initialize_client, ecs, elasticache, elbv2, rds, AppResult};
+use aws_toolkit::{
+    autoscaling, client::initialize_client, ecs, elasticache, elbv2, rds, AppResult,
+};
 use clap::Parser;
 use log::{debug, info};
 
@@ -28,6 +30,9 @@ struct Args {
 
     #[clap(short, long, default_value = "false")]
     delete: bool,
+
+    #[clap(short, long, default_value = "false")]
+    skip_final_rds_snapshot: bool,
 
     #[clap(short, long, default_value = "false")]
     scaledown: bool,
@@ -74,6 +79,9 @@ async fn main() -> AppResult<()> {
                 ecs::scale_down_service(&ecs_client, &args.cluster, service, 0).await?;
             }
         }
+    }
+    
+    if args.scaledown {
         if !db_instances.is_empty() {
             println!("Stopping RDS instances.");
             for db_instance in &db_instances {
@@ -99,7 +107,11 @@ async fn main() -> AppResult<()> {
             println!("Deleting RDS.");
             for db_instance in &db_instances {
                 rds::disable_deletion_protection(&rds_client, db_instance).await?;
-                rds::delete_db_instance(&rds_client, db_instance).await?;
+                if args.skip_final_rds_snapshot {
+                    rds::delete_db_instance_skip_final_snapshot(&rds_client, db_instance).await?;
+                } else {
+                    rds::delete_db_instance_with_final_snapshot(&rds_client, db_instance).await?;
+                }
             }
         }
         if !load_balancers.is_empty() {
