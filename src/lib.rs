@@ -2,6 +2,7 @@ pub mod autoscaling;
 pub mod client;
 pub mod codecommit;
 pub mod codepipeline;
+pub mod ec2;
 pub mod ecs;
 pub mod elasticache;
 pub mod elbv2;
