@@ -127,8 +127,7 @@ async fn main() -> AppResult<()> {
         if !nat_gateways.is_empty() {
             println!("Deleting NAT gateways.");
             for nat_gateway in &nat_gateways {
-                // ec2::delete_nat_gateway(&ec2_client, &nat_gateway).await?;
-                println!("{}", nat_gateway);
+                ec2::delete_nat_gateway(&ec2_client, &nat_gateway).await?;
             }
         }
     }

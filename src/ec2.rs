@@ -1,4 +1,5 @@
 use crate::AppResult;
+use aws_sdk_ec2::types::NatGatewayState::{Deleted, Deleting};
 use aws_sdk_ec2::Client;
 use log::debug;
 
@@ -17,7 +18,11 @@ pub async fn get_nat_gateway_ids(client: &Client, cluster: &str) -> AppResult<Ve
                 t.value()
                     .expect("Cannot extract tag value.")
                     .contains(&cluster)
-            }) {
+            }) && ![Deleted, Deleting].contains(
+                nat_gateway
+                    .state()
+                    .expect("Cannot extract NAT gateway state."),
+            ) {
                 nat_gateway_ids.push(
                     nat_gateway
                         .nat_gateway_id()
