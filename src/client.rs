@@ -3,6 +3,7 @@ use aws_config::Region;
 use aws_sdk_autoscaling::{Client as AutoScalingClient, Config as AutoScalingConfig};
 use aws_sdk_codecommit::{Client as CodeCommitClient, Config as CodeCommitConfig};
 use aws_sdk_codepipeline::{Client as CodepipelineClient, Config as CodepipelineConfig};
+use aws_sdk_ec2::{Client as Ec2Client, Config as Ec2Config};
 use aws_sdk_ecs::{Client as EcsClient, Config as EcsConfig};
 use aws_sdk_elasticache::{Client as ElasticacheClient, Config as ElasticacheConfig};
 use aws_sdk_elasticloadbalancingv2::{Client as Elbv2Client, Config as Elbv2Config};
@@ -44,6 +45,7 @@ macro_rules! impl_aws_client_builder {
 
 // Implement the trait for AWS SDK clients
 impl_aws_client_builder!(AutoScalingClient, AutoScalingConfig);
+impl_aws_client_builder!(Ec2Client, Ec2Config);
 impl_aws_client_builder!(EcsClient, EcsConfig);
 impl_aws_client_builder!(RdsClient, RdsConfig);
 impl_aws_client_builder!(Sesv2Client, Sesv2Config);

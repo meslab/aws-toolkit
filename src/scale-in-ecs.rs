@@ -1,12 +1,13 @@
 use aws_config::Region;
 use aws_sdk_autoscaling::Client as AutoScalingClient;
+use aws_sdk_ec2::Client as Ec2Client;
 use aws_sdk_ecs::Client as EcsClient;
 use aws_sdk_elasticache::Client as ElasticacheClient;
 use aws_sdk_elasticloadbalancingv2::Client as Elbv2Client;
 use aws_sdk_rds::Client as RdsClient;
 
 use aws_toolkit::{
-    autoscaling, client::initialize_client, ecs, elasticache, elbv2, rds, AppResult,
+    autoscaling, client::initialize_client, ec2, ecs, elasticache, elbv2, rds, AppResult,
 };
 use clap::Parser;
 use log::{debug, info};
@@ -66,6 +67,9 @@ async fn main() -> AppResult<()> {
     let load_balancers = elbv2::list_load_balancers(&elbv2_client, &args.cluster).await?;
     info!("Load Balancers: {:?}", load_balancers);
 
+    let ec2_client = initialize_client::<Ec2Client>(region.clone(), &args.profile).await;
+    let nat_gateways = ec2::get_nat_gateway_ids(&ec2_client, &args.cluster).await?;
+
     if args.scaledown || args.delete {
         if !asgs.is_empty() {
             println!("Scaling down ASGs.");
@@ -118,6 +122,13 @@ async fn main() -> AppResult<()> {
             println!("Deleting load balancers.");
             for load_balancer in &load_balancers {
                 elbv2::delete_load_balancer(&elbv2_client, load_balancer).await?;
+            }
+        }
+        if !nat_gateways.is_empty() {
+            println!("Deleting NAT gateways.");
+            for nat_gateway in &nat_gateways {
+                // ec2::delete_nat_gateway(&ec2_client, &nat_gateway).await?;
+                println!("{}", nat_gateway);
             }
         }
     }
