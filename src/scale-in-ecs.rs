@@ -69,6 +69,7 @@ async fn main() -> AppResult<()> {
 
     let ec2_client = initialize_client::<Ec2Client>(region.clone(), &args.profile).await;
     let nat_gateways = ec2::get_nat_gateway_ids(&ec2_client, &args.cluster).await?;
+    let ec2_instances = ec2::get_ec2_instances_ids(&ec2_client, &args.cluster).await?;
 
     if args.scaledown || args.delete {
         if !asgs.is_empty() {
@@ -81,6 +82,18 @@ async fn main() -> AppResult<()> {
             println!("Scaling down ECS services.");
             for service in &services {
                 ecs::scale_down_service(&ecs_client, &args.cluster, service, 0).await?;
+            }
+        }
+        if !ec2_instances.is_empty() {
+            println!("Terminating EC2 instances.");
+            for ec2_instance in &ec2_instances {
+                ec2::terminate_ec2_instance(&ec2_client, &ec2_instance).await?;
+            }
+        }
+        if !nat_gateways.is_empty() {
+            println!("Deleting NAT gateways.");
+            for nat_gateway in &nat_gateways {
+                ec2::delete_nat_gateway(&ec2_client, &nat_gateway).await?;
             }
         }
     }
@@ -122,12 +135,6 @@ async fn main() -> AppResult<()> {
             println!("Deleting load balancers.");
             for load_balancer in &load_balancers {
                 elbv2::delete_load_balancer(&elbv2_client, load_balancer).await?;
-            }
-        }
-        if !nat_gateways.is_empty() {
-            println!("Deleting NAT gateways.");
-            for nat_gateway in &nat_gateways {
-                ec2::delete_nat_gateway(&ec2_client, &nat_gateway).await?;
             }
         }
     }
