@@ -53,12 +53,38 @@ pub async fn list_pipelines(
     let input = list_all_pipelines(client, include, exclude).await?;
 
     let filter_failure = |x: &StageState| {
-        let status = &x.latest_execution.as_ref().unwrap().status;
+        if x.latest_execution.is_none() {
+            return false;
+        }
+        let status = &x
+            .latest_execution
+            .as_ref()
+            .expect(
+                format!(
+                    "Cannot extract status from the latest execution of {}.",
+                    &x.stage_name().unwrap_or_default()
+                )
+                .as_str(),
+            )
+            .status;
         [Succeeded, Failed].contains(status)
     };
 
     let filter_progress = |x: &StageState| {
-        let status = &x.latest_execution.as_ref().unwrap().status;
+        if x.latest_execution.is_none() {
+            return true;
+        }
+        let status = &x
+            .latest_execution
+            .as_ref()
+            .expect(
+                format!(
+                    "Cannot extract status from the latest execution of {}.",
+                    &x.stage_name().unwrap_or_default()
+                )
+                .as_str(),
+            )
+            .status;
         ![InProgress].contains(status)
     };
 
@@ -73,12 +99,38 @@ pub async fn list_failed_pipelines(
     let input = list_all_pipelines(client, include, exclude).await?;
 
     let filter_failure = |x: &StageState| {
-        let status = &x.latest_execution.as_ref().unwrap().status;
+        if x.latest_execution.is_none() {
+            return false;
+        }
+        let status = &x
+            .latest_execution
+            .as_ref()
+            .expect(
+                format!(
+                    "Cannot extract status from the latest execution of {}.",
+                    &x.stage_name().unwrap_or_default()
+                )
+                .as_str(),
+            )
+            .status;
         [Failed].contains(status)
     };
 
     let filter_progress = |x: &StageState| {
-        let status = &x.latest_execution.as_ref().unwrap().status;
+        if x.latest_execution.is_none() {
+            return true;
+        }
+        let status = &x
+            .latest_execution
+            .as_ref()
+            .expect(
+                format!(
+                    "Cannot extract status from the latest execution of {}.",
+                    &x.stage_name().unwrap_or_default()
+                )
+                .as_str(),
+            )
+            .status;
         ![InProgress].contains(status)
     };
 
@@ -150,9 +202,9 @@ pub async fn release_pipeline(client: &Client, pipeline_name: &str) -> AppResult
                         retries += 1;
                         eprintln!(
                             "ThrottlingException encountered. Retrying in {} seconds... (attempt {}/{})",
-                            5 * retries, retries, max_retries
+                            10 * retries, retries, max_retries
                         );
-                        sleep(Duration::from_secs(5 * retries)).await;
+                        sleep(Duration::from_secs(10 * retries)).await;
                         continue;
                     }
                 }
