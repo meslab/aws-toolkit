@@ -87,23 +87,21 @@ async fn main() -> AppResult<()> {
         if !ec2_instances.is_empty() {
             println!("Terminating EC2 instances.");
             for ec2_instance in &ec2_instances {
-                ec2::terminate_ec2_instance(&ec2_client, &ec2_instance).await?;
+                ec2::terminate_ec2_instance(&ec2_client, ec2_instance).await?;
             }
         }
         if !nat_gateways.is_empty() {
             println!("Deleting NAT gateways.");
             for nat_gateway in &nat_gateways {
-                ec2::delete_nat_gateway(&ec2_client, &nat_gateway).await?;
+                ec2::delete_nat_gateway(&ec2_client, nat_gateway).await?;
             }
         }
     }
 
-    if args.scaledown {
-        if !db_instances.is_empty() {
-            println!("Stopping RDS instances.");
-            for db_instance in &db_instances {
-                rds::stop_db_instance(&rds_client, db_instance).await?;
-            }
+    if args.scaledown && !db_instances.is_empty() {
+        println!("Stopping RDS instances.");
+        for db_instance in &db_instances {
+            rds::stop_db_instance(&rds_client, db_instance).await?;
         }
     }
 

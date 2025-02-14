@@ -16,13 +16,14 @@ where
     let mut pipelines_stream = client.list_pipelines().into_paginator().send();
 
     while let Some(output) = pipelines_stream.next().await {
-        for pipeline in output?.pipelines.unwrap_or_default() {
-            if let Some(pipeline_name) = pipeline.name {
-                if filter(&pipeline_name) {
-                    pipelines.push(pipeline_name);
-                }
-            }
-        }
+        pipelines.extend(
+            output?
+                .pipelines
+                .unwrap_or_default()
+                .into_iter()
+                .filter_map(|p| p.name)
+                .filter(|name| filter(name)),
+        );
     }
 
     debug!("Pipelines: {:?}", pipelines);
@@ -56,17 +57,7 @@ pub async fn list_pipelines(
         if x.latest_execution.is_none() {
             return false;
         }
-        let status = &x
-            .latest_execution
-            .as_ref()
-            .expect(
-                format!(
-                    "Cannot extract status from the latest execution of {}.",
-                    &x.stage_name().unwrap_or_default()
-                )
-                .as_str(),
-            )
-            .status;
+        let status = get_stage_status(x);
         [Succeeded, Failed].contains(status)
     };
 
@@ -74,17 +65,7 @@ pub async fn list_pipelines(
         if x.latest_execution.is_none() {
             return true;
         }
-        let status = &x
-            .latest_execution
-            .as_ref()
-            .expect(
-                format!(
-                    "Cannot extract status from the latest execution of {}.",
-                    &x.stage_name().unwrap_or_default()
-                )
-                .as_str(),
-            )
-            .status;
+        let status = get_stage_status(x);
         ![InProgress].contains(status)
     };
 
@@ -102,17 +83,7 @@ pub async fn list_failed_pipelines(
         if x.latest_execution.is_none() {
             return false;
         }
-        let status = &x
-            .latest_execution
-            .as_ref()
-            .expect(
-                format!(
-                    "Cannot extract status from the latest execution of {}.",
-                    &x.stage_name().unwrap_or_default()
-                )
-                .as_str(),
-            )
-            .status;
+        let status = get_stage_status(x);
         [Failed].contains(status)
     };
 
@@ -120,21 +91,25 @@ pub async fn list_failed_pipelines(
         if x.latest_execution.is_none() {
             return true;
         }
-        let status = &x
-            .latest_execution
-            .as_ref()
-            .expect(
-                format!(
-                    "Cannot extract status from the latest execution of {}.",
-                    &x.stage_name().unwrap_or_default()
-                )
-                .as_str(),
-            )
-            .status;
+        let status = get_stage_status(x);
         ![InProgress].contains(status)
     };
 
     list_state_pipelines_internal(client, &input, filter_failure, filter_progress).await
+}
+
+fn get_stage_status(x: &StageState) -> &aws_sdk_codepipeline::types::StageExecutionStatus {
+    let status = &x
+        .latest_execution
+        .as_ref()
+        .unwrap_or_else(|| {
+            panic!(
+                "Cannot extract status from the latest execution of {}.",
+                &x.stage_name().unwrap_or_default()
+            )
+        })
+        .status;
+    status
 }
 
 async fn list_state_pipelines_internal<Ff, Fp>(

@@ -13,25 +13,29 @@ pub async fn get_nat_gateway_ids(client: &Client, cluster: &str) -> AppResult<Ve
         .send();
 
     while let Some(nat_gateways) = nat_gateway_stream.next().await {
-        debug!("NAT Gateways: {:?}", nat_gateways);
-        for nat_gateway in nat_gateways?.nat_gateways() {
-            if nat_gateway.tags().iter().any(|t| {
-                t.value()
-                    .expect("Cannot extract tag value.")
-                    .contains(&cluster)
-            }) && ![Deleted, Deleting].contains(
-                nat_gateway
-                    .state()
-                    .expect("Cannot extract NAT gateway state."),
-            ) {
-                nat_gateway_ids.push(
+        nat_gateway_ids.extend(
+            nat_gateways?
+                .nat_gateways()
+                .iter()
+                .filter(|nat_gateway| {
+                    nat_gateway.tags().iter().any(|tag| {
+                        tag.value()
+                            .expect("Cannot extract tag value.")
+                            .contains(cluster)
+                            && ![Deleted, Deleting].contains(
+                                nat_gateway
+                                    .state()
+                                    .expect("Cannot extract NAT gateway state."),
+                            )
+                    })
+                })
+                .map(|nat_gateway| {
                     nat_gateway
                         .nat_gateway_id()
                         .expect("Cannot extract gateway id.")
-                        .to_owned(),
-                );
-            }
-        }
+                        .to_owned()
+                }),
+        );
     }
     Ok(nat_gateway_ids)
 }
@@ -47,7 +51,7 @@ pub async fn delete_nat_gateway(client: &Client, gateway_id: &str) -> AppResult<
         Ok(_) => Ok(()),
         _ => {
             tokio::time::sleep(std::time::Duration::from_secs(15)).await;
-            delete_nat_gateway(client, &gateway_id).await?;
+            delete_nat_gateway(client, gateway_id).await?;
             Ok(())
         }
     }
@@ -68,7 +72,7 @@ pub async fn get_ec2_instances_ids(client: &Client, cluster: &str) -> AppResult<
                 if instance.tags().iter().any(|t| {
                     t.value()
                         .expect("Cannot extract tag value.")
-                        .contains(&cluster)
+                        .contains(cluster)
                 }) && ![ShuttingDown, Terminated].contains(
                     instance
                         .state()
@@ -100,7 +104,7 @@ pub async fn terminate_ec2_instance(client: &Client, instance_id: &str) -> AppRe
         Ok(_) => Ok(()),
         _ => {
             tokio::time::sleep(std::time::Duration::from_secs(15)).await;
-            terminate_ec2_instance(client, &instance_id).await?;
+            terminate_ec2_instance(client, instance_id).await?;
             Ok(())
         }
     }
