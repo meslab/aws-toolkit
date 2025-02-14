@@ -17,23 +17,18 @@ pub async fn get_nat_gateway_ids(client: &Client, cluster: &str) -> AppResult<Ve
             nat_gateways?
                 .nat_gateways()
                 .iter()
-                .filter(|nat_gateway| {
-                    nat_gateway.tags().iter().any(|tag| {
-                        tag.value()
-                            .expect("Cannot extract tag value.")
-                            .contains(cluster)
-                            && ![Deleted, Deleting].contains(
-                                nat_gateway
-                                    .state()
-                                    .expect("Cannot extract NAT gateway state."),
-                            )
-                    })
-                })
-                .map(|nat_gateway| {
+                .filter_map(|nat_gateway| {
+                    if [Deleted, Deleting].contains(nat_gateway.state()?) {
+                        return None;
+                    }
+
+                    let get_id_string = || nat_gateway.nat_gateway_id().map(ToOwned::to_owned);
+
                     nat_gateway
-                        .nat_gateway_id()
-                        .expect("Cannot extract gateway id.")
-                        .to_owned()
+                        .tags()
+                        .iter()
+                        .find_map(|tag| tag.value().filter(|v| v.contains(cluster)))
+                        .and_then(|_| get_id_string())
                 }),
         );
     }
