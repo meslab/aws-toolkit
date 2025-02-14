@@ -2,7 +2,6 @@ use crate::AppResult;
 use aws_sdk_ec2::types::InstanceStateName::{ShuttingDown, Terminated};
 use aws_sdk_ec2::types::NatGatewayState::{Deleted, Deleting};
 use aws_sdk_ec2::Client;
-use log::debug;
 
 pub async fn get_nat_gateway_ids(client: &Client, cluster: &str) -> AppResult<Vec<String>> {
     let mut nat_gateway_ids: Vec<String> = Vec::new();
@@ -61,7 +60,6 @@ pub async fn get_ec2_instances_ids(client: &Client, cluster: &str) -> AppResult<
         .send();
 
     while let Some(ec2_instances) = ec2_instances_stream.next().await {
-        debug!("EC2 Instances: {:?}", ec2_instances);
         for reservation in ec2_instances?.reservations() {
             for instance in reservation.instances() {
                 if instance.tags().iter().any(|t| {
