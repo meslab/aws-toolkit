@@ -11,21 +11,31 @@ pub async fn list_db_instances(client: &Client, cluster: &str) -> AppResult<Vec<
         .into_paginator()
         .send();
 
-    while let Some(db_instance) = db_instances_stream.next().await {
-        debug!("DB Instances: {:?}", db_instance);
-        for instance in db_instance.unwrap().db_instances.unwrap() {
-            if instance
-                .db_instance_identifier
-                .as_ref()
-                .unwrap()
-                .contains(cluster)
-                && ["available", "stopped"]
-                    .contains(&instance.db_instance_status.as_ref().unwrap().as_str())
-            {
-                db_instances.push(instance.db_instance_identifier.unwrap());
-            }
-        }
+    while let Some(db_instances_output) = db_instances_stream.next().await {
+        let db_instances_output = db_instances_output?;
+        debug!("DB Instances: {:?}", db_instances_output);
+
+        db_instances.extend(
+            db_instances_output
+                .db_instances()
+                .iter()
+                .filter_map(|instance| {
+                    let id = instance.db_instance_identifier.as_deref()?;
+                    
+                    if !id.contains(cluster) {
+                        return None;
+                    }
+
+                    if !["available", "stopped"].contains(&instance.db_instance_status.as_deref()?)
+                    {
+                        return None;
+                    };
+
+                    Some(id.to_owned())
+                }),
+        );
     }
+
     Ok(db_instances)
 }
 
@@ -74,7 +84,6 @@ pub async fn delete_db_instance_with_final_snapshot(
 pub async fn stop_db_instance(client: &Client, db_instance_id: &str) -> AppResult<()> {
     client
         .stop_db_instance()
-        .db_instance_identifier(db_instance_id)
         .db_instance_identifier(db_instance_id)
         .send()
         .await?;
