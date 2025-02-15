@@ -14,24 +14,32 @@ pub async fn list_asgs(
         .into_paginator()
         .send();
 
-    while let Some(asg) = asg_stream.next().await {
-        debug!("ASG: {:?}", asg);
-        for group in asg.unwrap().auto_scaling_groups.unwrap() {
-            if group
-                .auto_scaling_group_name
-                .as_ref()
-                .unwrap()
-                .contains(cluster)
-                && group.desired_capacity.unwrap().gt(&desired_capacity)
-            {
-                asgs.push(group.auto_scaling_group_name.unwrap());
+    while let Some(asg_result) = asg_stream.next().await {
+        //let asg_result = asg_result?;
+        debug!("ASG: {:?}", asg_result);
+        asgs.extend(asg_result?.auto_scaling_groups().iter().filter_map(|asg| {
+            let asg_name = asg.auto_scaling_group_name.as_deref()?;
+            if !asg_name.contains(cluster) {
+                return None;
             }
-        }
+            if asg
+                .desired_capacity
+                .expect("Cannnot get group desired capacity.")
+                .gt(&desired_capacity)
+            {
+                return None;
+            }
+            Some(asg_name.to_owned())
+        }));
     }
     Ok(asgs)
 }
 
-pub async fn scale_down_asg(client: &Client, asg_name: &str, desired_capacity: i32) -> AppResult<()> {
+pub async fn scale_down_asg(
+    client: &Client,
+    asg_name: &str,
+    desired_capacity: i32,
+) -> AppResult<()> {
     client
         .update_auto_scaling_group()
         .auto_scaling_group_name(asg_name)

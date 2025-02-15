@@ -12,16 +12,15 @@ pub async fn list_db_instances(client: &Client, cluster: &str) -> AppResult<Vec<
         .send();
 
     while let Some(db_instances_output) = db_instances_stream.next().await {
-        let db_instances_output = db_instances_output?;
         debug!("DB Instances: {:?}", db_instances_output);
 
         db_instances.extend(
-            db_instances_output
+            db_instances_output?
                 .db_instances()
                 .iter()
                 .filter_map(|instance| {
                     let id = instance.db_instance_identifier.as_deref()?;
-                    
+
                     if !id.contains(cluster) {
                         return None;
                     }
