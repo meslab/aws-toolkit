@@ -15,7 +15,6 @@ pub async fn list_asgs(
         .send();
 
     while let Some(asg_result) = asg_stream.next().await {
-        //let asg_result = asg_result?;
         debug!("ASG: {:?}", asg_result);
         asgs.extend(asg_result?.auto_scaling_groups().iter().filter_map(|asg| {
             let asg_name = asg.auto_scaling_group_name.as_deref()?;
