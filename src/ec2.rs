@@ -2,7 +2,6 @@ use crate::AppResult;
 use aws_sdk_ec2::types::InstanceStateName::{ShuttingDown, Terminated};
 use aws_sdk_ec2::types::NatGatewayState::{Deleted, Deleting};
 use aws_sdk_ec2::Client;
-use log::debug;
 
 pub async fn get_nat_gateway_ids(client: &Client, cluster: &str) -> AppResult<Vec<String>> {
     let mut nat_gateway_ids: Vec<String> = Vec::new();
@@ -13,25 +12,24 @@ pub async fn get_nat_gateway_ids(client: &Client, cluster: &str) -> AppResult<Ve
         .send();
 
     while let Some(nat_gateways) = nat_gateway_stream.next().await {
-        debug!("NAT Gateways: {:?}", nat_gateways);
-        for nat_gateway in nat_gateways?.nat_gateways() {
-            if nat_gateway.tags().iter().any(|t| {
-                t.value()
-                    .expect("Cannot extract tag value.")
-                    .contains(&cluster)
-            }) && ![Deleted, Deleting].contains(
-                nat_gateway
-                    .state()
-                    .expect("Cannot extract NAT gateway state."),
-            ) {
-                nat_gateway_ids.push(
+        nat_gateway_ids.extend(
+            nat_gateways?
+                .nat_gateways()
+                .iter()
+                .filter_map(|nat_gateway| {
+                    if [Deleted, Deleting].contains(nat_gateway.state()?) {
+                        return None;
+                    }
+
+                    let get_id_string = || nat_gateway.nat_gateway_id().map(ToOwned::to_owned);
+
                     nat_gateway
-                        .nat_gateway_id()
-                        .expect("Cannot extract gateway id.")
-                        .to_owned(),
-                );
-            }
-        }
+                        .tags()
+                        .iter()
+                        .find_map(|tag| tag.value().filter(|v| v.contains(cluster)))
+                        .and_then(|_| get_id_string())
+                }),
+        );
     }
     Ok(nat_gateway_ids)
 }
@@ -47,7 +45,7 @@ pub async fn delete_nat_gateway(client: &Client, gateway_id: &str) -> AppResult<
         Ok(_) => Ok(()),
         _ => {
             tokio::time::sleep(std::time::Duration::from_secs(15)).await;
-            delete_nat_gateway(client, &gateway_id).await?;
+            delete_nat_gateway(client, gateway_id).await?;
             Ok(())
         }
     }
@@ -62,13 +60,12 @@ pub async fn get_ec2_instances_ids(client: &Client, cluster: &str) -> AppResult<
         .send();
 
     while let Some(ec2_instances) = ec2_instances_stream.next().await {
-        debug!("EC2 Instances: {:?}", ec2_instances);
         for reservation in ec2_instances?.reservations() {
             for instance in reservation.instances() {
                 if instance.tags().iter().any(|t| {
                     t.value()
                         .expect("Cannot extract tag value.")
-                        .contains(&cluster)
+                        .contains(cluster)
                 }) && ![ShuttingDown, Terminated].contains(
                     instance
                         .state()
@@ -100,7 +97,7 @@ pub async fn terminate_ec2_instance(client: &Client, instance_id: &str) -> AppRe
         Ok(_) => Ok(()),
         _ => {
             tokio::time::sleep(std::time::Duration::from_secs(15)).await;
-            terminate_ec2_instance(client, &instance_id).await?;
+            terminate_ec2_instance(client, instance_id).await?;
             Ok(())
         }
     }
