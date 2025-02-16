@@ -2,7 +2,10 @@ use crate::AppResult;
 use aws_sdk_codecommit::Client;
 use log::debug;
 
-async fn list_filtered_repositories_internal<F>(client: &Client, filter: F) -> AppResult<Vec<String>>
+async fn list_filtered_repositories_internal<F>(
+    client: &Client,
+    filter: F,
+) -> AppResult<Vec<String>>
 where
     F: Fn(&str) -> bool + Send + Sync,
 {
@@ -11,13 +14,14 @@ where
     let mut repos_stream = client.list_repositories().into_paginator().send();
 
     while let Some(output) = repos_stream.next().await {
-        for repo in output?.repositories.unwrap_or_default() {
-            if let Some(repo_name) = repo.repository_name {
-                if filter(&repo_name) {
-                    repos.push(repo_name);
-                }
+        repos.extend(output?.repositories().iter().filter_map(|repo| {
+            let repo_name = repo.repository_name()?;
+            if filter(repo_name) {
+                Some(repo_name.to_owned())
+            } else {
+                None
             }
-        }
+        }));
     }
 
     debug!("Repositories: {:?}", repos);

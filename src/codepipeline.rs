@@ -16,14 +16,14 @@ where
     let mut pipelines_stream = client.list_pipelines().into_paginator().send();
 
     while let Some(output) = pipelines_stream.next().await {
-        pipelines.extend(
-            output?
-                .pipelines
-                .unwrap_or_default()
-                .into_iter()
-                .filter_map(|p| p.name)
-                .filter(|name| filter(name)),
-        );
+        pipelines.extend(output?.pipelines().iter().filter_map(|p| {
+            let pipeline_name = p.name()?;
+            if filter(pipeline_name) {
+                Some(pipeline_name.to_owned())
+            } else {
+                None
+            }
+        }));
     }
 
     debug!("Pipelines: {:?}", pipelines);
@@ -98,14 +98,15 @@ pub async fn list_failed_pipelines(
     list_state_pipelines_internal(client, &input, filter_failure, filter_progress).await
 }
 
-fn get_stage_status(x: &StageState) -> &aws_sdk_codepipeline::types::StageExecutionStatus {
-    let status = &x
-        .latest_execution
-        .as_ref()
+fn get_stage_status(
+    stage_state: &StageState,
+) -> &aws_sdk_codepipeline::types::StageExecutionStatus {
+    let status = &stage_state
+        .latest_execution()
         .unwrap_or_else(|| {
             panic!(
                 "Cannot extract status from the latest execution of {}.",
-                &x.stage_name().unwrap_or_default()
+                &stage_state.stage_name().unwrap_or_default()
             )
         })
         .status;

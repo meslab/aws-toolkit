@@ -1,17 +1,20 @@
 pub(crate) fn sanitize_string(input: &str) -> String {
     input
         .chars()
-        .fold((String::new(), false), |(mut acc, last_was_dash), c| {
-            if c.is_alphanumeric() {
-                acc.push(c);
-                (acc, false)
-            } else if !last_was_dash {
-                acc.push('-');
-                (acc, true)
-            } else {
-                (acc, last_was_dash)
-            }
-        })
+        .fold(
+            (String::with_capacity(input.len()), false),
+            |(mut acc, last_was_dash), c| {
+                if c.is_alphanumeric() {
+                    acc.push(c);
+                    (acc, false)
+                } else if !last_was_dash {
+                    acc.push('-');
+                    (acc, true)
+                } else {
+                    (acc, last_was_dash)
+                }
+            },
+        )
         .0
         .trim_matches('-')
         .to_string()

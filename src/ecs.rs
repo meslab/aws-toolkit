@@ -2,6 +2,7 @@ use crate::AppResult;
 use aws_sdk_ecs::Client;
 use log::debug;
 
+//#[async_recursion::async_recursion]
 pub async fn get_service_arns(
     client: &Client,
     cluster: &str,
@@ -17,34 +18,25 @@ pub async fn get_service_arns(
 
     while let Some(services) = services_stream.next().await {
         debug!("Services: {:?}", services);
-        for service_arn in services.unwrap().service_arns.unwrap() {
+        for service_arn in services?.service_arns() {
             debug!("Service ARN: {:?}", service_arn);
-            if service_arn.contains(cluster) {
-                debug!("Service ARN: {}", service_arn);
-                match client
-                    .describe_services()
-                    .cluster(cluster)
-                    .services(&service_arn)
-                    .send()
-                    .await
-                {
-                    Ok(service) => {
-                        debug!("Service: {:?}", service);
-                        if service
-                            .services
-                            .unwrap()
-                            .first()
-                            .unwrap()
-                            .desired_count
-                            .gt(&desired_count)
-                        {
-                            service_arns.push(service_arn);
-                        }
-                    }
-                    Err(e) => {
-                        debug!("Error: {:?}", e);
-                    }
-                }
+            if !service_arn.contains(cluster) {
+                continue;
+            }
+
+            let services = client
+                .describe_services()
+                .cluster(cluster)
+                .services(service_arn)
+                .send()
+                .await?;
+
+            if services
+                .services()
+                .iter()
+                .any(|service| service.desired_count > desired_count)
+            {
+                service_arns.push(service_arn.to_owned());
             }
         }
     }
@@ -93,7 +85,11 @@ pub async fn delete_service(client: &Client, cluster: &str, service_arn: &str) -
     }
 }
 
-pub async fn get_service_arn(ecs_client: &Client, cluster: &str, service: &str) -> AppResult<String> {
+pub async fn get_service_arn(
+    ecs_client: &Client,
+    cluster: &str,
+    service: &str,
+) -> AppResult<String> {
     let mut ecs_services_stream = ecs_client
         .list_services()
         .cluster(cluster)
