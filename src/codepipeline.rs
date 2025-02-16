@@ -16,14 +16,14 @@ where
     let mut pipelines_stream = client.list_pipelines().into_paginator().send();
 
     while let Some(output) = pipelines_stream.next().await {
-        pipelines.extend(
-            output?
-                .pipelines
-                .unwrap_or_default()
-                .into_iter()
-                .filter_map(|p| p.name)
-                .filter(|name| filter(name)),
-        );
+        pipelines.extend(output?.pipelines().iter().filter_map(|p| {
+            let pipeline_name = p.name()?;
+            if filter(pipeline_name) {
+                Some(pipeline_name.to_owned())
+            } else {
+                None
+            }
+        }));
     }
 
     debug!("Pipelines: {:?}", pipelines);
