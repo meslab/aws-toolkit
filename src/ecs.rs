@@ -11,7 +11,7 @@ pub async fn get_service_arns(
     let mut services_stream = client
         .list_services()
         .cluster(cluster)
-        .max_results(100)
+        .max_results(10)
         .into_paginator()
         .send();
 
