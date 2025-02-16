@@ -20,7 +20,6 @@ pub async fn get_service_arns(
         for service_arn in services?.service_arns() {
             debug!("Service ARN: {:?}", service_arn);
             if service_arn.contains(cluster) {
-                debug!("Service ARN: {}", service_arn);
                 match client
                     .describe_services()
                     .cluster(cluster)
