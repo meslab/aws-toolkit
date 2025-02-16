@@ -2,7 +2,6 @@ use crate::AppResult;
 use aws_sdk_ecs::Client;
 use log::debug;
 
-//#[async_recursion::async_recursion]
 pub async fn get_service_arns(
     client: &Client,
     cluster: &str,
