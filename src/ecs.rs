@@ -19,7 +19,6 @@ pub async fn get_service_arns(
     while let Some(services) = services_stream.next().await {
         debug!("Services: {:?}", services);
         for service_arn in services?.service_arns() {
-            debug!("Service ARN: {:?}", service_arn);
             if !service_arn.contains(cluster) {
                 continue;
             }
