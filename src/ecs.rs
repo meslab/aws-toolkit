@@ -18,26 +18,27 @@ pub async fn get_service_arns(
 
     while let Some(services) = services_stream.next().await {
         debug!("Services: {:?}", services);
-        for service_arn in services?.service_arns() {
-            if !service_arn.contains(cluster) {
-                continue;
-            }
+        let relevant_arns = services?.service_arns()
+            .iter()
+            .filter(|arn| arn.contains(cluster))
+            .map(|s| s.to_owned())
+            .collect();
+        let relevant_arns = Some(relevant_arns);
 
-            let services = client
-                .describe_services()
-                .cluster(cluster)
-                .services(service_arn)
-                .send()
-                .await?;
+        let services = client
+            .describe_services()
+            .cluster(cluster)
+            .set_services(relevant_arns)
+            .send()
+            .await?;
 
-            if services
+        service_arns.extend(
+            services
                 .services()
                 .iter()
-                .any(|service| service.desired_count > desired_count)
-            {
-                service_arns.push(service_arn.to_owned());
-            }
-        }
+                .filter(|service| service.desired_count > desired_count)
+                .map(|service| service.service_arn().unwrap_or_default().to_owned()),
+        );
     }
     Ok(service_arns)
 }
