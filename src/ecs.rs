@@ -2,6 +2,7 @@ use crate::AppResult;
 use aws_sdk_ecs::Client;
 use log::debug;
 
+//#[async_recursion::async_recursion]
 pub async fn get_service_arns(
     client: &Client,
     cluster: &str,
@@ -17,12 +18,16 @@ pub async fn get_service_arns(
 
     while let Some(services) = services_stream.next().await {
         debug!("Services: {:?}", services);
-        let relevant_arns = services?
+        let relevant_arns: Vec<String> = services?
             .service_arns()
             .iter()
             .filter(|arn| arn.contains(cluster))
             .map(|s| s.to_owned())
             .collect();
+
+        if relevant_arns.is_empty() {
+            continue;
+        }
 
         let services = client
             .describe_services()
