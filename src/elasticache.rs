@@ -13,11 +13,7 @@ pub async fn list_replication_groups(client: &Client, cluster: &str) -> AppResul
     while let Some(replication_group) = replication_groups_stream.next().await {
         debug!("Replication Groups: {:?}", replication_group);
         for group in replication_group.unwrap().replication_groups.unwrap() {
-            if group
-                .replication_group_id
-                .as_ref()
-                .unwrap()
-                .contains(cluster)
+            if group.replication_group_id().unwrap().contains(cluster)
                 && group.status.unwrap().contains("available")
             {
                 replication_groups.push(group.replication_group_id.unwrap());
@@ -27,7 +23,10 @@ pub async fn list_replication_groups(client: &Client, cluster: &str) -> AppResul
     Ok(replication_groups)
 }
 
-pub async fn delete_replication_group(client: &Client, replication_group_id: &str) -> AppResult<()> {
+pub async fn delete_replication_group(
+    client: &Client,
+    replication_group_id: &str,
+) -> AppResult<()> {
     client
         .delete_replication_group()
         .replication_group_id(replication_group_id)

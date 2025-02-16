@@ -10,14 +10,10 @@ pub async fn list_load_balancers(client: &Client, cluster: &str) -> AppResult<Ve
         debug!("Load Balancers: {:?}", load_balancer_output);
         load_balancers.extend(load_balancer_output?.load_balancers().iter().filter_map(
             |load_balancer| {
-                if !load_balancer
-                    .load_balancer_name
-                    .as_deref()?
-                    .contains(cluster)
-                {
+                if !load_balancer.load_balancer_name()?.contains(cluster) {
                     return None;
                 }
-                Some(load_balancer.load_balancer_arn.as_deref()?.to_owned())
+                Some(load_balancer.load_balancer_arn()?.to_owned())
             },
         ));
     }

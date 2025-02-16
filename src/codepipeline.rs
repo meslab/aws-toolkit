@@ -100,8 +100,7 @@ pub async fn list_failed_pipelines(
 
 fn get_stage_status(x: &StageState) -> &aws_sdk_codepipeline::types::StageExecutionStatus {
     let status = &x
-        .latest_execution
-        .as_ref()
+        .latest_execution()
         .unwrap_or_else(|| {
             panic!(
                 "Cannot extract status from the latest execution of {}.",

@@ -19,14 +19,13 @@ pub async fn list_db_instances(client: &Client, cluster: &str) -> AppResult<Vec<
                 .db_instances()
                 .iter()
                 .filter_map(|instance| {
-                    let id = instance.db_instance_identifier.as_deref()?;
+                    let id = instance.db_instance_identifier()?;
 
                     if !id.contains(cluster) {
                         return None;
                     }
 
-                    if !["available", "stopped"].contains(&instance.db_instance_status.as_deref()?)
-                    {
+                    if !["available", "stopped"].contains(&instance.db_instance_status()?) {
                         return None;
                     };
 
