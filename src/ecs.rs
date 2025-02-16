@@ -19,31 +19,25 @@ pub async fn get_service_arns(
         debug!("Services: {:?}", services);
         for service_arn in services?.service_arns() {
             debug!("Service ARN: {:?}", service_arn);
-            if service_arn.contains(cluster) {
-                match client
-                    .describe_services()
-                    .cluster(cluster)
-                    .services(service_arn)
-                    .send()
-                    .await
-                {
-                    Ok(service) => {
-                        debug!("Service: {:?}", service);
-                        if service
-                            .services
-                            .unwrap()
-                            .first()
-                            .unwrap()
-                            .desired_count
-                            .gt(&desired_count)
-                        {
-                            service_arns.push(service_arn.to_owned());
-                        }
-                    }
-                    Err(e) => {
-                        debug!("Error: {:?}", e);
-                    }
-                }
+            if !service_arn.contains(cluster) {
+                continue;
+            }
+            let service = client
+                .describe_services()
+                .cluster(cluster)
+                .services(service_arn)
+                .send()
+                .await?;
+            debug!("Service: {:?}", service);
+            if service
+                .services
+                .unwrap()
+                .first()
+                .unwrap()
+                .desired_count
+                .gt(&desired_count)
+            {
+                service_arns.push(service_arn.to_owned());
             }
         }
     }
