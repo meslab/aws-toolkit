@@ -98,13 +98,15 @@ pub async fn list_failed_pipelines(
     list_state_pipelines_internal(client, &input, filter_failure, filter_progress).await
 }
 
-fn get_stage_status(x: &StageState) -> &aws_sdk_codepipeline::types::StageExecutionStatus {
-    let status = &x
+fn get_stage_status(
+    stage_state: &StageState,
+) -> &aws_sdk_codepipeline::types::StageExecutionStatus {
+    let status = &stage_state
         .latest_execution()
         .unwrap_or_else(|| {
             panic!(
                 "Cannot extract status from the latest execution of {}.",
-                &x.stage_name().unwrap_or_default()
+                &stage_state.stage_name().unwrap_or_default()
             )
         })
         .status;
