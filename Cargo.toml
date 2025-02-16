@@ -6,24 +6,24 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-async-recursion = "1.1.1"
-aws-config = { version = "1.5.15", features = ["behavior-version-latest"] }
-aws-sdk-autoscaling = { version = "1.65.0", features = ["behavior-version-latest"] }
-aws-sdk-codecommit = { version = "1.58.0", features = ["behavior-version-latest"] }
-aws-sdk-ecs = { version = "1.65.0", features = ["behavior-version-latest"] }
-aws-sdk-elasticache = { version = "1.62.0", features = ["behavior-version-latest"] }
-aws-sdk-elasticloadbalancingv2 = { version = "1.65.0", features = ["behavior-version-latest"] }
-aws-sdk-rds = { version = "1.76.1", features = ["behavior-version-latest"] }
-aws-sdk-sesv2 = { version = "1.64.0", features = ["behavior-version-latest"] }
-clap = { version = "4.5.27", features = ["derive"] }
+aws-config = { version = "1.5.16", features = ["behavior-version-latest"] }
+aws-sdk-autoscaling = { version = "1.67.0", features = ["behavior-version-latest"] }
+aws-sdk-codecommit = { version = "1.60.0", features = ["behavior-version-latest"] }
+aws-sdk-ecs = { version = "1.67.0", features = ["behavior-version-latest"] }
+aws-sdk-elasticache = { version = "1.64.0", features = ["behavior-version-latest"] }
+aws-sdk-elasticloadbalancingv2 = { version = "1.67.0", features = ["behavior-version-latest"] }
+aws-sdk-rds = { version = "1.78.0", features = ["behavior-version-latest"] }
+aws-sdk-sesv2 = { version = "1.66.0", features = ["behavior-version-latest"] }
+aws-sdk-dynamodb = { version = "1.65.0", features = ["behavior-version-latest"] }
+aws-sdk-ec2 = { version = "1.110.0", features = ["behavior-version-latest"] }
+aws-sdk-codepipeline = { version = "1.68.0", features = ["behavior-version-latest"] }
+tokio = { version = "1.43.0", features = ["macros", "rt-multi-thread"] }
+clap = { version = "4.5.29", features = ["derive"] }
 chrono = "0.4.39"
 env_logger = "0.11.6"
 log = "0.4.25"
-tokio = { version = "1.43.0", features = ["macros", "rt-multi-thread"] }
+async-recursion = "1.1.1"
 git2 = "0.20.0"
-aws-sdk-codepipeline = { version = "1.66.0", features = ["behavior-version-latest"] }
-aws-sdk-dynamodb = { version = "1.63.0", features = ["behavior-version-latest"] }
-aws-sdk-ec2 = { version = "1.107.0", features = ["behavior-version-latest"] }
 
 [profile.release]
 lto = true
