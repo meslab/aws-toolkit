@@ -17,7 +17,7 @@ pub async fn list_asgs(
     while let Some(asg_result) = asg_stream.next().await {
         debug!("ASG: {:?}", asg_result);
         asgs.extend(asg_result?.auto_scaling_groups().iter().filter_map(|asg| {
-            let asg_name = asg.auto_scaling_group_name.as_deref()?;
+            let asg_name = asg.auto_scaling_group_name()?;
             if !asg_name.contains(cluster) {
                 return None;
             }
