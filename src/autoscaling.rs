@@ -21,11 +21,7 @@ pub async fn list_asgs(
             if !asg_name.contains(cluster) {
                 return None;
             }
-            if asg
-                .desired_capacity
-                .expect("Cannnot get group desired capacity.")
-                .gt(&desired_capacity)
-            {
+            if asg.desired_capacity?.gt(&desired_capacity) {
                 return None;
             }
             Some(asg_name.to_owned())
