@@ -17,14 +17,14 @@ pub async fn get_service_arns(
 
     while let Some(services) = services_stream.next().await {
         debug!("Services: {:?}", services);
-        for service_arn in services?.service_arns.unwrap() {
+        for service_arn in services?.service_arns() {
             debug!("Service ARN: {:?}", service_arn);
             if service_arn.contains(cluster) {
                 debug!("Service ARN: {}", service_arn);
                 match client
                     .describe_services()
                     .cluster(cluster)
-                    .services(&service_arn)
+                    .services(service_arn)
                     .send()
                     .await
                 {
@@ -38,7 +38,7 @@ pub async fn get_service_arns(
                             .desired_count
                             .gt(&desired_count)
                         {
-                            service_arns.push(service_arn);
+                            service_arns.push(service_arn.to_owned());
                         }
                     }
                     Err(e) => {
@@ -93,7 +93,11 @@ pub async fn delete_service(client: &Client, cluster: &str, service_arn: &str) -
     }
 }
 
-pub async fn get_service_arn(ecs_client: &Client, cluster: &str, service: &str) -> AppResult<String> {
+pub async fn get_service_arn(
+    ecs_client: &Client,
+    cluster: &str,
+    service: &str,
+) -> AppResult<String> {
     let mut ecs_services_stream = ecs_client
         .list_services()
         .cluster(cluster)
