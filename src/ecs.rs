@@ -23,19 +23,18 @@ pub async fn get_service_arns(
             if !service_arn.contains(cluster) {
                 continue;
             }
-            let service = client
+
+            let services = client
                 .describe_services()
                 .cluster(cluster)
                 .services(service_arn)
                 .send()
                 .await?;
-            if service
-                .services
-                .unwrap()
-                .first()
-                .unwrap()
-                .desired_count
-                .gt(&desired_count)
+
+            if services
+                .services()
+                .iter()
+                .any(|service| service.desired_count > desired_count)
             {
                 service_arns.push(service_arn.to_owned());
             }
