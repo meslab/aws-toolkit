@@ -24,7 +24,7 @@ pub async fn get_suppression_list(
             addresses?
                 .suppressed_destination_summaries()
                 .iter()
-                .filter_map(|address| email_address_filter(last_count_days, now, address)),
+                .filter_map(|address| email_address_filter(last_count_days, &now, address)),
         );
         thread::sleep(time::Duration::from_millis(1000));
     }
@@ -34,7 +34,7 @@ pub async fn get_suppression_list(
 
 fn email_address_filter(
     last_count_days: Option<u32>,
-    now: DateTime<Utc>,
+    now: &DateTime<Utc>,
     address: &SuppressedDestinationSummary,
 ) -> Option<(String, String, String)> {
     debug!("Address: {:?}", address);
@@ -46,7 +46,7 @@ fn email_address_filter(
 }
 
 fn get_email_if_match_time_interval(
-    now: DateTime<Utc>,
+    now: &DateTime<Utc>,
     address: &SuppressedDestinationSummary,
     timestamp: &aws_sdk_ec2::primitives::DateTime,
     last: u32,
@@ -58,7 +58,7 @@ fn get_email_if_match_time_interval(
         }
     };
 
-    let duration = now - time_date;
+    let duration = *now - time_date;
     info!("Duration: {:?}", duration.num_days());
     
     if duration.num_days() < last as i64 {
