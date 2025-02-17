@@ -25,29 +25,31 @@ pub async fn get_service_arns(
             .map(|s| s.to_owned())
             .collect();
 
-        if relevant_arns.is_empty() {
-            continue;
+        for relevant_arns_chunk in relevant_arns.chunks(10) {
+            if relevant_arns_chunk.is_empty() {
+                continue;
+            }
+
+            let services = client
+                .describe_services()
+                .cluster(cluster)
+                .set_services(Some(relevant_arns_chunk.to_vec()))
+                .send()
+                .await?;
+
+            service_arns.extend(
+                services
+                    .services()
+                    .iter()
+                    .filter(|service| service.desired_count > desired_count)
+                    .map(|service| {
+                        service
+                            .service_arn()
+                            .expect("Cannot extract service arn.")
+                            .to_owned()
+                    }),
+            );
         }
-
-        let services = client
-            .describe_services()
-            .cluster(cluster)
-            .set_services(Some(relevant_arns))
-            .send()
-            .await?;
-
-        service_arns.extend(
-            services
-                .services()
-                .iter()
-                .filter(|service| service.desired_count > desired_count)
-                .map(|service| {
-                    service
-                        .service_arn()
-                        .expect("Cannot extract service arn.")
-                        .to_owned()
-                }),
-        );
     }
     Ok(service_arns)
 }
