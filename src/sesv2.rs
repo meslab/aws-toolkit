@@ -40,30 +40,41 @@ fn email_address_filter(
     debug!("Address: {:?}", address);
     let timestamp = address.last_update_time();
     match last_count_days {
-        None => Some((
-            address.email_address().to_string(),
-            address.reason().to_string(),
-            timestamp.to_string(),
-        )),
-        Some(last) => {
-            let time_date =
-                match DateTime::from_timestamp(timestamp.secs(), timestamp.subsec_nanos()) {
-                    Some(time_date) => time_date,
-                    None => {
-                        return None;
-                    }
-                };
-            let duration = now - time_date;
-            info!("Duration: {:?}", duration.num_days());
-            if duration.num_days() < last as i64 {
-                Some((
-                    address.email_address().to_string(),
-                    address.reason().to_string(),
-                    timestamp.to_string(),
-                ))
-            } else {
-                None
-            }
-        }
+        Some(last) => get_email_if_match_time_interval(now, address, timestamp, last),
+        None => get_email_suppression_record(address, timestamp),
     }
+}
+
+fn get_email_if_match_time_interval(
+    now: DateTime<Utc>,
+    address: &SuppressedDestinationSummary,
+    timestamp: &aws_sdk_ec2::primitives::DateTime,
+    last: u32,
+) -> Option<(String, String, String)> {
+    let time_date = match DateTime::from_timestamp(timestamp.secs(), timestamp.subsec_nanos()) {
+        Some(time_date) => time_date,
+        None => {
+            return None;
+        }
+    };
+
+    let duration = now - time_date;
+    info!("Duration: {:?}", duration.num_days());
+    
+    if duration.num_days() < last as i64 {
+        get_email_suppression_record(address, timestamp)
+    } else {
+        None
+    }
+}
+
+fn get_email_suppression_record(
+    address: &SuppressedDestinationSummary,
+    timestamp: &aws_sdk_ec2::primitives::DateTime,
+) -> Option<(String, String, String)> {
+    Some((
+        address.email_address().to_string(),
+        address.reason().to_string(),
+        timestamp.to_string(),
+    ))
 }
