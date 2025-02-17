@@ -14,7 +14,7 @@ pub async fn get_suppression_list(
         .into_paginator()
         .send();
 
-    let mut emails = Vec::new();
+    let mut emails = Vec::with_capacity(100);
     let now = chrono::Utc::now();
 
     while let Some(addresses) = sesv2_addresses_stream.next().await {
@@ -28,7 +28,6 @@ pub async fn get_suppression_list(
         );
         thread::sleep(time::Duration::from_millis(1000));
     }
-    // Err("Address not found".into())
     Ok(emails)
 }
 
@@ -60,7 +59,7 @@ fn get_email_if_match_time_interval(
 
     let duration = *now - time_date;
     info!("Duration: {:?}", duration.num_days());
-    
+
     if duration.num_days() < last as i64 {
         get_email_suppression_record(address, timestamp)
     } else {
