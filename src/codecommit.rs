@@ -13,15 +13,20 @@ where
 
     let mut repos_stream = client.list_repositories().into_paginator().send();
 
-    while let Some(output) = repos_stream.next().await {
-        repos.extend(output?.repositories().iter().filter_map(|repo| {
-            let repo_name = repo.repository_name()?;
-            if filter(repo_name) {
-                Some(repo_name.to_owned())
-            } else {
-                None
-            }
-        }));
+    while let Some(list_repositories_output) = repos_stream.next().await {
+        repos.extend(
+            list_repositories_output?
+                .repositories()
+                .iter()
+                .filter_map(|repo| {
+                    let repo_name = repo.repository_name()?;
+                    if filter(repo_name) {
+                        Some(repo_name.to_owned())
+                    } else {
+                        None
+                    }
+                }),
+        );
     }
 
     debug!("Repositories: {:?}", repos);
