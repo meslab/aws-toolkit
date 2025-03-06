@@ -1,8 +1,8 @@
 use crate::AppResult;
+use aws_sdk_codepipeline::Client;
 use aws_sdk_codepipeline::error::SdkError;
 use aws_sdk_codepipeline::types::StageExecutionStatus::{Failed, InProgress, Succeeded};
 use aws_sdk_codepipeline::types::StageState;
-use aws_sdk_codepipeline::Client;
 use log::debug;
 use std::time::Duration;
 use tokio::time::sleep;
@@ -171,16 +171,21 @@ pub async fn release_pipeline(client: &Client, pipeline_name: &str) -> AppResult
             .send()
             .await
         {
-            Ok(_) => return Ok(()), // Success, exit the loop
+            Ok(_) => {
+                sleep(Duration::from_secs(1)).await;
+                return Ok(());
+            } // Success, exit the loop
             Err(SdkError::ServiceError(service_error)) => {
                 if let Some(code) = service_error.err().meta().code() {
                     if code == "ThrottlingException" && retries < max_retries {
                         retries += 1;
                         eprintln!(
                             "ThrottlingException encountered. Retrying in {} seconds... (attempt {}/{})",
-                            10 * retries, retries, max_retries
+                            20 * retries,
+                            retries,
+                            max_retries
                         );
-                        sleep(Duration::from_secs(10 * retries)).await;
+                        sleep(Duration::from_secs(20 * retries)).await;
                         continue;
                     }
                 }
