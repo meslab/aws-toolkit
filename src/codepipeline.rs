@@ -181,7 +181,7 @@ pub async fn release_pipeline(client: &Client, pipeline_name: &str) -> AppResult
                         retries += 1;
                         eprintln!(
                             "ThrottlingException encountered. Retrying in {} seconds... (attempt {}/{})",
-                            20 * retries,
+                            25 * retries,
                             retries,
                             max_retries
                         );
