@@ -7,10 +7,11 @@ use aws_sdk_elasticloadbalancingv2::Client as Elbv2Client;
 use aws_sdk_rds::Client as RdsClient;
 
 use aws_toolkit::{
-    autoscaling, client::initialize_client, ec2, ecs, elasticache, elbv2, rds, AppResult,
+    AppResult, autoscaling, client::initialize_client, ec2, ecs, elasticache, elbv2, rds,
 };
 use clap::Parser;
 use log::{debug, info};
+use std::io::Write;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -44,6 +45,24 @@ async fn main() -> AppResult<()> {
     env_logger::init();
 
     let args = Args::parse();
+
+    if args.delete && args.skip_final_rds_snapshot {
+        // Show confirmation prompt
+        print!(
+            "Are you sure you want to DROP all databases without a final snapshot?\n(Type YES to confirm): "
+        );
+        std::io::stdout().flush()?;
+
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input)?;
+
+        if input.trim() != "YES" {
+            println!("Aborted. Databases were not dropped.");
+            return Ok(());
+        }
+        println!("Confirmation received. Proceeding with database drop...");
+    }
+
     let region = Region::new(args.region.clone());
 
     let as_client = initialize_client::<AutoScalingClient>(region.clone(), &args.profile).await;
