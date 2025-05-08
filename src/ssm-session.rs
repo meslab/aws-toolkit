@@ -1,8 +1,9 @@
 use aws_config::Region;
 use aws_sdk_ecs::Client as EcsClient;
-use aws_toolkit::{client::initialize_client, ecs, AppResult};
+use aws_toolkit::{AppResult, client::initialize_client, ecs};
 use clap::Parser;
 use log::info;
+use std::os::unix::process::CommandExt;
 use std::process::Command;
 
 #[derive(Parser)]
@@ -92,9 +93,6 @@ async fn main() -> AppResult<()> {
         .arg("--profile")
         .arg(&args.profile)
         .arg(command)
-        .spawn()
-        .expect("Failed to start ssm session")
-        .wait()
-        .expect("Failed to start ssm session");
+        .exec();
     Ok(())
 }
