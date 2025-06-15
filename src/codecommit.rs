@@ -57,9 +57,8 @@ pub async fn list_exact_repositories(
     let include: Vec<_> = include.iter().map(|x| x.as_str()).collect();
     let exclude: Vec<_> = exclude.iter().map(|x| x.as_str()).collect();
 
-    let filter = |repo_name: &str| {
-        include.iter().any(|&x| x == repo_name) && exclude.iter().all(|&x| x != repo_name)
-    };
+    let filter =
+        |repo_name: &str| include.contains(&repo_name) && exclude.iter().all(|&x| x != repo_name);
 
     list_filtered_repositories_internal(client, filter).await
 }

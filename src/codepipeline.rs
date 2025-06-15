@@ -101,7 +101,7 @@ pub async fn list_failed_pipelines(
 fn get_stage_status(
     stage_state: &StageState,
 ) -> &aws_sdk_codepipeline::types::StageExecutionStatus {
-    let status = &stage_state
+    &stage_state
         .latest_execution()
         .unwrap_or_else(|| {
             panic!(
@@ -109,8 +109,7 @@ fn get_stage_status(
                 &stage_state.stage_name().unwrap_or_default()
             )
         })
-        .status;
-    status
+        .status
 }
 
 async fn list_state_pipelines_internal<Ff, Fp>(
