@@ -1,12 +1,20 @@
-use crate::{sanitize_string, AppResult};
-use aws_sdk_rds::Client;
+use crate::{AppResult, sanitize_string};
+use aws_sdk_rds::{Client, types::Filter};
 use chrono::{self, Utc};
 use log::debug;
 
 pub async fn list_db_instances(client: &Client, cluster: &str) -> AppResult<Vec<String>> {
     let mut db_instances = Vec::new();
+
+    let filter_value = format!("{}-postgres", cluster);
+    let filter = Filter::builder()
+        .name("db-instance-id") // same as Name field in boto3
+        .values(filter_value)
+        .build();
+
     let mut db_instances_stream = client
         .describe_db_instances()
+        .filters(filter)
         .max_records(100)
         .into_paginator()
         .send();
