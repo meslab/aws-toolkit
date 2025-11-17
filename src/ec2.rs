@@ -1,12 +1,16 @@
 use crate::AppResult;
+use aws_sdk_ec2::Client;
+use aws_sdk_ec2::types::Filter;
 use aws_sdk_ec2::types::InstanceStateName::{ShuttingDown, Terminated};
 use aws_sdk_ec2::types::NatGatewayState::{Deleted, Deleting};
-use aws_sdk_ec2::Client;
 
 pub async fn get_nat_gateway_ids(client: &Client, cluster: &str) -> AppResult<Vec<String>> {
     let mut nat_gateway_ids: Vec<String> = Vec::new();
+    let filter = Filter::builder().name("tag:Prefix").values(cluster).build();
+
     let mut nat_gateway_stream = client
         .describe_nat_gateways()
+        .filter(filter)
         .max_results(100)
         .into_paginator()
         .send();
@@ -53,8 +57,17 @@ pub async fn delete_nat_gateway(client: &Client, gateway_id: &str) -> AppResult<
 
 pub async fn get_ec2_instances_ids(client: &Client, cluster: &str) -> AppResult<Vec<String>> {
     let mut ec2_instances_ids: Vec<String> = Vec::new();
+    let prefix_filter = Filter::builder().name("tag:Prefix").values(cluster).build();
+
+    let state_filter = Filter::builder()
+        .name("instance-state-name")
+        .values("running")
+        .build();
+
     let mut ec2_instances_stream = client
         .describe_instances()
+        .filters(prefix_filter)
+        .filters(state_filter)
         .max_results(100)
         .into_paginator()
         .send();
