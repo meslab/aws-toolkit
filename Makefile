@@ -44,7 +44,7 @@ ses-suppression-list:
 release: ssm-session scale-in-ecs ecr-gitconfig ses-suppression-list
 
 all:
-	cargo build -r
+	cargo build -r -j 2
 	strip target/release/ssm-session
 	strip target/release/scale-in-ecs
 	strip target/release/ecr-gitconfig
