@@ -175,18 +175,19 @@ pub async fn release_pipeline(client: &Client, pipeline_name: &str) -> AppResult
                 return Ok(());
             } // Success, exit the loop
             Err(SdkError::ServiceError(service_error)) => {
-                if let Some(code) = service_error.err().meta().code() {
-                    if code == "ThrottlingException" && retries < max_retries {
-                        retries += 1;
-                        eprintln!(
-                            "ThrottlingException encountered. Retrying in {} seconds... (attempt {}/{})",
-                            25 * retries,
-                            retries,
-                            max_retries
-                        );
-                        sleep(Duration::from_secs(20 * retries)).await;
-                        continue;
-                    }
+                if let Some(code) = service_error.err().meta().code()
+                    && code == "ThrottlingException"
+                    && retries < max_retries
+                {
+                    retries += 1;
+                    eprintln!(
+                        "ThrottlingException encountered. Retrying in {} seconds... (attempt {}/{})",
+                        25 * retries,
+                        retries,
+                        max_retries
+                    );
+                    sleep(Duration::from_secs(20 * retries)).await;
+                    continue;
                 }
                 return Err(SdkError::ServiceError(service_error).into());
             }

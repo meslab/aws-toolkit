@@ -1,6 +1,6 @@
 use aws_config::Region;
 use aws_sdk_sesv2::Client as Sesv2Client;
-use aws_toolkit::{client::initialize_client, sesv2, AppResult};
+use aws_toolkit::{AppResult, client::initialize_client, sesv2};
 
 use clap::Parser;
 use log::debug;

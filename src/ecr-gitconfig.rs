@@ -1,6 +1,6 @@
 use aws_config::Region;
 use aws_sdk_codecommit::Client as CodeCommitClient;
-use aws_toolkit::{client::initialize_client, codecommit, AppResult};
+use aws_toolkit::{AppResult, client::initialize_client, codecommit};
 use clap::Parser;
 use git2::{Config, ConfigLevel};
 use log::info;
@@ -41,12 +41,7 @@ struct Args {
     name: Option<String>,
 }
 
-fn write_gitconfig(
-    file: &mut File,
-    repo: &str,
-    region: &str,
-    profile: &str,
-) -> AppResult<()> {
+fn write_gitconfig(file: &mut File, repo: &str, region: &str, profile: &str) -> AppResult<()> {
     writeln!(
         file,
         "[credential \"https://git-codecommit.{}.amazonaws.com/v1/repos/{}.git\"]",
