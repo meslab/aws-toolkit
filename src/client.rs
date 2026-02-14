@@ -1,5 +1,5 @@
-use aws_config::default_provider::credentials::DefaultCredentialsChain;
 use aws_config::Region;
+use aws_config::default_provider::credentials::DefaultCredentialsChain;
 use aws_sdk_autoscaling::{Client as AutoScalingClient, Config as AutoScalingConfig};
 use aws_sdk_codecommit::{Client as CodeCommitClient, Config as CodeCommitConfig};
 use aws_sdk_codepipeline::{Client as CodepipelineClient, Config as CodepipelineConfig};

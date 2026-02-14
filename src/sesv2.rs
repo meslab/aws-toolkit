@@ -1,5 +1,5 @@
 use crate::AppResult;
-use aws_sdk_sesv2::{types::SuppressedDestinationSummary, Client};
+use aws_sdk_sesv2::{Client, types::SuppressedDestinationSummary};
 use chrono::{DateTime, Utc};
 use log::{debug, info};
 use std::{thread, time};
