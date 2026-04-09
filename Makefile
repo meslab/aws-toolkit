@@ -41,7 +41,12 @@ ses-suppression-list:
 	cargo build -r --bin ses-suppression-list
 	strip target/release/ses-suppression-list
 
-release: ssm-session scale-in-ecs ecr-gitconfig ses-suppression-list
+s3-guardduty-copy:
+	cargo update
+	cargo build -r --bin s3-guardduty-copy
+	strip target/release/s3-guardduty-copy
+
+release: ssm-session scale-in-ecs ecr-gitconfig ses-suppression-list s3-guardduty-copy
 
 all:
 	cargo build -r
@@ -49,6 +54,7 @@ all:
 	strip target/release/scale-in-ecs
 	strip target/release/ecr-gitconfig
 	strip target/release/ses-suppression-list
+	strip target/release/s3-guardduty-copy
 
 install: all
 	cp target/release/ssm-session ~/.local/bin
@@ -56,6 +62,7 @@ install: all
 	cp target/release/ecr-gitconfig ~/.local/bin
 	cp target/release/ses-suppression-list ~/.local/bin
 	cp target/release/release-codepipelines ~/.local/bin
+	cp target/release/s3-guardduty-copy ~/.local/bin
 
 clean:
 	cargo clean
@@ -67,5 +74,11 @@ uninstall: clean
 	rm -f ~/.local/bin/ecr-gitconfig
 	rm -f ~/.local/bin/ses-suppression-list
 	rm -f ~/.local/bin/release-codepipelines
+	rm -f ~/.local/bin/s3-guardduty-copy
 
-.PHONY: rust-version format lint test run build ssm-session scale-in-ecs ecr-gitconfig ses-suppression-list release install clean uninstall all
+upgrade:
+	rustup update
+	for i in $$(cat Cargo.toml | grep '^aws-' | awk '{ print $$1 }'); do cargo remove $$i; cargo add $$i -F behavior-version-latest; done
+	cargo update
+
+.PHONY: rust-version format lint test run build ssm-session scale-in-ecs ecr-gitconfig ses-suppression-list s3-guardduty-copy release install clean uninstall all upgrade
