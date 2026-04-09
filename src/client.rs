@@ -7,7 +7,9 @@ use aws_sdk_ec2::{Client as Ec2Client, Config as Ec2Config};
 use aws_sdk_ecs::{Client as EcsClient, Config as EcsConfig};
 use aws_sdk_elasticache::{Client as ElasticacheClient, Config as ElasticacheConfig};
 use aws_sdk_elasticloadbalancingv2::{Client as Elbv2Client, Config as Elbv2Config};
+use aws_sdk_guardduty::{Client as GDClient, Config as GDConfig};
 use aws_sdk_rds::{Client as RdsClient, Config as RdsConfig};
+use aws_sdk_s3::{Client as S3Client, Config as S3Config};
 use aws_sdk_sesv2::{Client as Sesv2Client, Config as Sesv2Config};
 
 // Define a generic trait for AWS clients
@@ -53,6 +55,8 @@ impl_aws_client_builder!(CodeCommitClient, CodeCommitConfig);
 impl_aws_client_builder!(ElasticacheClient, ElasticacheConfig);
 impl_aws_client_builder!(Elbv2Client, Elbv2Config);
 impl_aws_client_builder!(CodepipelineClient, CodepipelineConfig);
+impl_aws_client_builder!(S3Client, S3Config);
+impl_aws_client_builder!(GDClient, GDConfig);
 
 // Generic initialization function
 pub async fn initialize_client<C: AwsClientBuilder>(region: Region, profile: &str) -> C::Client {

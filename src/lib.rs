@@ -6,7 +6,9 @@ pub mod ec2;
 pub mod ecs;
 pub mod elasticache;
 pub mod elbv2;
+pub mod guardduty;
 pub mod rds;
+pub mod s3;
 pub mod sesv2;
 mod utils;
 
