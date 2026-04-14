@@ -25,7 +25,7 @@ pub async fn get_buckets_with_guardduty_enabled(client: &Client) -> AppResult<bo
     for feature in detector.features() {
         let name = feature.name();
         if matches!(name, Some(DetectorFeatureResult::S3DataEvents)) {
-            println!("👉 S3 protection status: {:?}", feature.status());
+            println!("S3 protection status: {:?}", feature.status());
         } else {
             return Ok(true);
         }

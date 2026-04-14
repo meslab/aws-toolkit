@@ -75,7 +75,11 @@ async fn main() -> AppResult<()> {
             };
             counter += 1;
         }
-        println!("{}copied {} files", &"dry run, would be ", counter);
+        if args.dry_run {
+            println!("{}copied {} files", &"dry run, would be ", counter);
+        } else {
+            println!("copied {} files", counter);
+        }
         if let Some(policy) = bucket_policy {
             s3::restore_bucket_policy(&s3_client, &bucket, &policy).await?;
         }
