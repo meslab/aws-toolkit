@@ -18,6 +18,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl3 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/target/release/{ssm-session,scale-in-ecs,ecr-gitconfig,ses-suppression-list,s3-guardduty-copy,release-codepipelines} /usr/local/bin/
+COPY --from=builder /app/target/release/ssm-session /usr/local/bin/
+COPY --from=builder /app/target/release/scale-in-ecs /usr/local/bin/
+COPY --from=builder /app/target/release/ecr-gitconfig /usr/local/bin/
+COPY --from=builder /app/target/release/ses-suppression-list /usr/local/bin/
+COPY --from=builder /app/target/release/s3-guardduty-copy /usr/local/bin/
+COPY --from=builder /app/target/release/release-codepipelines /usr/local/bin/
 
 CMD ["/bin/bash"]
