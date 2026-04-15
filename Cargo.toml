@@ -29,7 +29,7 @@ aws-sdk-s3 = { version = "1.129.0", features = ["behavior-version-latest"] }
 
 [profile.release]
 lto = true
-codegen-units = 1
+# codegen-units = 1
 opt-level = "s"
 
 [[bin]]
