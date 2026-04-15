@@ -66,28 +66,8 @@ async fn main() -> AppResult<()> {
                 .await?;
         }
 
-        let mut counter = 0;
-        let objects = s3::list_all_objects(&s3_client, &bucket).await?;
-
-        for key in objects {
-            if !&args.dry_run
-                && let Err(e) = s3::update_metadata_in_place(&s3_client, &bucket, &key).await
-            {
-                eprintln!(
-                    "Error: file '{}' could not be copied to bucket '{}'. Details: {}",
-                    key, bucket, e
-                );
-            };
-            counter += 1;
-            if counter % 100 == 0 {
-                println!("copied {} files", counter);
-            }
-        }
-        if args.dry_run {
-            println!("{}copied {} files", &"dry run, would be ", counter);
-        } else {
-            println!("copied {} files", counter);
-        }
+        let counter: usize = s3::copy_all_objects(&s3_client, &bucket).await?;
+        println!("copied {} files", counter);
         if let Some(policy) = bucket_policy {
             s3::restore_bucket_policy(&s3_client, &bucket, &policy).await?;
         }

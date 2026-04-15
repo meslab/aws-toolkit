@@ -67,20 +67,16 @@ pub async fn get_buckets(
     list_filtered_buckets_internal(client, filter).await
 }
 
-pub async fn list_all_objects(
-    client: &S3Client,
-    bucket: &str,
-) -> Result<Vec<String>, aws_sdk_s3::Error> {
+pub async fn copy_all_objects(client: &S3Client, bucket: &str) -> Result<usize, aws_sdk_s3::Error> {
     let paginator = client
         .list_objects_v2()
         .bucket(bucket)
         .into_paginator()
         .send();
 
-    let mut keys = Vec::new();
-
     tokio::pin!(paginator);
 
+    let mut counter = 0;
     while let Some(page) = paginator.next().await {
         let page = page?;
 
@@ -101,14 +97,23 @@ pub async fn list_all_objects(
                         .is_none();
 
                     if no_gd_tag {
-                        keys.push(key.to_owned());
+                        if let Err(e) = update_metadata_in_place(client, bucket, key).await {
+                            eprintln!(
+                                "Error: file '{}' could not be copied to bucket '{}'. Details: {}",
+                                key, bucket, e
+                            );
+                        };
+                        counter += 1;
+                        if counter % 100 == 0 {
+                            println!("copied {} files", counter);
+                        }
                     }
                 }
             }
         }
     }
 
-    Ok(keys)
+    Ok(counter)
 }
 
 pub async fn copy_to_self(client: &S3Client, bucket: &str, key: &str) -> AppResult<()> {
