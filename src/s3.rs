@@ -14,12 +14,15 @@ pub async fn save_bucket_policy(client: &S3Client, bucket: &str) -> AppResult<Op
 pub async fn restore_bucket_policy(client: &S3Client, bucket: &str, policy: &str) -> AppResult<()> {
     client.delete_bucket_policy().bucket(bucket).send().await?;
 
-    client
+    if let Err(e) = client
         .put_bucket_policy()
         .bucket(bucket)
         .policy(policy)
         .send()
-        .await?;
+        .await
+    {
+        eprintln!("Failure restore {} bucket policy {}.", bucket, e);
+    };
 
     Ok(())
 }
