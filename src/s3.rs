@@ -2,6 +2,7 @@ use crate::AppResult;
 use aws_sdk_s3::Client as S3Client;
 use aws_sdk_s3::types::MetadataDirective;
 use log::debug;
+use urlencoding::encode;
 
 pub async fn save_bucket_policy(client: &S3Client, bucket: &str) -> AppResult<Option<String>> {
     // Save current bucket policy JSON
@@ -80,12 +81,14 @@ pub async fn copy_all_objects(client: &S3Client, bucket: &str) -> Result<usize, 
     tokio::pin!(paginator);
 
     let mut counter = 0;
+    let mut counter_total = 0;
     while let Some(page) = paginator.next().await {
         let page = page?;
 
         if let Some(contents) = page.contents {
             for object in contents {
                 if let Some(key) = &object.key {
+                    counter_total += 1;
                     let tags = client
                         .get_object_tagging()
                         .bucket(bucket)
@@ -100,17 +103,17 @@ pub async fn copy_all_objects(client: &S3Client, bucket: &str) -> Result<usize, 
                         .is_none();
 
                     if no_gd_tag {
-                        if let Err(e) = update_metadata_in_place(client, bucket, key).await {
+                        if let Err(e) = copy_to_self(client, bucket, key).await {
                             eprintln!(
                                 "Error: file '{}' could not be copied to bucket '{}'. Details: {}",
                                 key, bucket, e
                             );
                         };
                         counter += 1;
-                        if counter % 100 == 0 {
-                            println!("copied {} files", counter);
-                        }
                     }
+                }
+                if counter_total % 100 == 0 {
+                    println!("processed {} objects, copied {}", counter_total, counter);
                 }
             }
         }
@@ -120,21 +123,8 @@ pub async fn copy_all_objects(client: &S3Client, bucket: &str) -> Result<usize, 
 }
 
 pub async fn copy_to_self(client: &S3Client, bucket: &str, key: &str) -> AppResult<()> {
-    let copy_source = format!("{bucket}/{key}");
-
-    client
-        .copy_object()
-        .bucket(bucket)
-        .key(key)
-        .copy_source(copy_source)
-        .send()
-        .await?;
-
-    Ok(())
-}
-
-pub async fn update_metadata_in_place(client: &S3Client, bucket: &str, key: &str) -> AppResult<()> {
-    let copy_source = format!("{bucket}/{key}");
+    let encoded_key = encode(key);
+    let copy_source = format!("{}/{}", bucket, encoded_key);
 
     client
         .copy_object()
