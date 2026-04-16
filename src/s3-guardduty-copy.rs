@@ -56,7 +56,7 @@ async fn main() -> AppResult<()> {
     debug!("{:?}", bucket_names);
 
     for bucket in bucket_names {
-        print!("Bucket {}: ", &bucket);
+        println!("Bucket {}: ", &bucket);
         let bucket_policy = s3::save_bucket_policy(&s3_client, &bucket).await?;
         if bucket_policy.is_some() {
             s3_client
