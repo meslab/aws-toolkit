@@ -141,7 +141,7 @@ pub async fn update_metadata_in_place(client: &S3Client, bucket: &str, key: &str
         .bucket(bucket)
         .key(key)
         .copy_source(copy_source)
-        .metadata_directive(MetadataDirective::Replace)
+        .metadata_directive(MetadataDirective::Copy)
         .send()
         .await?;
 
