@@ -2,7 +2,7 @@ use crate::AppResult;
 use aws_sdk_s3::Client as S3Client;
 use aws_sdk_s3::types::MetadataDirective;
 use log::debug;
-use urlencoding::encode;
+use percent_encoding::{NON_ALPHANUMERIC, utf8_percent_encode};
 
 pub async fn save_bucket_policy(client: &S3Client, bucket: &str) -> AppResult<Option<String>> {
     // Save current bucket policy JSON
@@ -123,7 +123,7 @@ pub async fn copy_all_objects(client: &S3Client, bucket: &str) -> Result<usize, 
 }
 
 pub async fn copy_to_self(client: &S3Client, bucket: &str, key: &str) -> AppResult<()> {
-    let encoded_key = encode(key);
+    let encoded_key = utf8_percent_encode(key, NON_ALPHANUMERIC).to_string();
     let copy_source = format!("{}/{}", bucket, encoded_key);
 
     client

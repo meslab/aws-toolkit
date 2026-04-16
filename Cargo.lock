@@ -821,8 +821,8 @@ dependencies = [
  "env_logger",
  "git2",
  "log",
+ "percent-encoding",
  "tokio",
- "urlencoding",
 ]
 
 [[package]]
