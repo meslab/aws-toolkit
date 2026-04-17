@@ -8,6 +8,7 @@ scale-in-ecs
 ses-suppression-list
 ecr-gitconfig
 release-codepipelines
+s3-guardduty-copy
 ```
 
 ## How to use
@@ -19,6 +20,7 @@ scale-in-ecs --help
 ses-suppression-list --help
 ecr-gitconfig --help
 release-codepipelines --help
+s3-guardduty-copy --help
 ```
 
 ## Installation 
