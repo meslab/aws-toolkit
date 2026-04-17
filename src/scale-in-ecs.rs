@@ -30,13 +30,16 @@ struct Args {
     #[clap(short, long, default_value = "default")]
     profile: String,
 
-    #[clap(short, long, default_value = "false")]
+    #[clap(short, long, default_value = "false", conflicts_with = "migration")]
     delete: bool,
+
+    #[clap(short, long, default_value = "false")]
+    migration: bool,
 
     #[clap(short = 'f', long, default_value = "false")]
     skip_final_rds_snapshot: bool,
 
-    #[clap(short, long, default_value = "false")]
+    #[clap(short, long, default_value = "false", conflicts_with = "migration")]
     scaledown: bool,
 }
 
@@ -65,22 +68,24 @@ async fn main() -> AppResult<()> {
 
     let region = Region::new(args.region.clone());
 
-    let as_client = initialize_client::<AutoScalingClient>(region.clone(), &args.profile).await;
-    let asgs = autoscaling::list_asgs(&as_client, &args.cluster, 0).await?;
-    info!("ASGs: {:?}", asgs);
-
-    let elc_client = initialize_client::<ElasticacheClient>(region.clone(), &args.profile).await;
-    let replication_groups =
-        elasticache::list_replication_groups(&elc_client, &args.cluster).await?;
-    info!("Replication Groups: {:?}", replication_groups);
-
     let ecs_client = initialize_client::<EcsClient>(region.clone(), &args.profile).await;
     let services = ecs::get_service_arns(&ecs_client, &args.cluster, 0).await?;
     info!("Services: {:?}", services);
 
-    let rds_client = initialize_client::<RdsClient>(region.clone(), &args.profile).await;
-    let db_instances = rds::list_db_instances(&rds_client, &args.cluster).await?;
-    info!("DB Instances: {:?}", db_instances);
+    if (args.migration || args.scaledown || args.delete) && !services.is_empty() {
+        println!("Scaling down ECS services.");
+        for service in &services {
+            ecs::scale_down_service(&ecs_client, &args.cluster, service, 0).await?;
+        }
+    }
+
+    if args.migration {
+        return Ok(());
+    }
+
+    let as_client = initialize_client::<AutoScalingClient>(region.clone(), &args.profile).await;
+    let asgs = autoscaling::list_asgs(&as_client, &args.cluster, 0).await?;
+    info!("ASGs: {:?}", asgs);
 
     let elbv2_client = initialize_client::<Elbv2Client>(region.clone(), &args.profile).await;
     let load_balancers = elbv2::list_load_balancers(&elbv2_client, &args.cluster).await?;
@@ -97,12 +102,6 @@ async fn main() -> AppResult<()> {
                 autoscaling::scale_down_asg(&as_client, asg, 0).await?;
             }
         }
-        if !services.is_empty() {
-            println!("Scaling down ECS services.");
-            for service in &services {
-                ecs::scale_down_service(&ecs_client, &args.cluster, service, 0).await?;
-            }
-        }
         if !ec2_instances.is_empty() {
             println!("Terminating EC2 instances.");
             for ec2_instance in &ec2_instances {
@@ -117,12 +116,21 @@ async fn main() -> AppResult<()> {
         }
     }
 
+    let rds_client = initialize_client::<RdsClient>(region.clone(), &args.profile).await;
+    let db_instances = rds::list_db_instances(&rds_client, &args.cluster).await?;
+    info!("DB Instances: {:?}", db_instances);
+
     if args.scaledown && !db_instances.is_empty() {
         println!("Stopping RDS instances.");
         for db_instance in &db_instances {
             rds::stop_db_instance(&rds_client, db_instance).await?;
         }
     }
+
+    let elc_client = initialize_client::<ElasticacheClient>(region.clone(), &args.profile).await;
+    let replication_groups =
+        elasticache::list_replication_groups(&elc_client, &args.cluster).await?;
+    info!("Replication Groups: {:?}", replication_groups);
 
     if args.delete {
         if !replication_groups.is_empty() {
