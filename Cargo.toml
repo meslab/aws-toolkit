@@ -13,20 +13,20 @@ env_logger = "0.11.6"
 log = "0.4.25"
 async-recursion = "1.1.1"
 git2 = "0.20.0"
-aws-config = { version = "1.8.15", features = ["behavior-version-latest"] }
-aws-sdk-autoscaling = { version = "1.113.0", features = ["behavior-version-latest"] }
-aws-sdk-codecommit = { version = "1.98.0", features = ["behavior-version-latest"] }
-aws-sdk-ecs = { version = "1.122.0", features = ["behavior-version-latest"] }
-aws-sdk-elasticache = { version = "1.104.0", features = ["behavior-version-latest"] }
-aws-sdk-elasticloadbalancingv2 = { version = "1.110.0", features = ["behavior-version-latest"] }
-aws-sdk-rds = { version = "1.130.0", features = ["behavior-version-latest"] }
-aws-sdk-sesv2 = { version = "1.117.0", features = ["behavior-version-latest"] }
-aws-sdk-dynamodb = { version = "1.110.0", features = ["behavior-version-latest"] }
-aws-sdk-ec2 = { version = "1.221.0", features = ["behavior-version-latest"] }
-aws-sdk-codepipeline = { version = "1.107.0", features = ["behavior-version-latest"] }
-aws-sdk-guardduty = { version = "1.120.0", features = ["behavior-version-latest"] }
-aws-sdk-s3 = { version = "1.129.0", features = ["behavior-version-latest"] }
 percent-encoding = "2.3.2"
+aws-config = { version = "1.12.0", features = ["behavior-version-latest"] }
+aws-sdk-autoscaling = { version = "1.135.0", features = ["behavior-version-latest"] }
+aws-sdk-codecommit = { version = "1.118.0", features = ["behavior-version-latest"] }
+aws-sdk-ecs = { version = "1.151.0", features = ["behavior-version-latest"] }
+aws-sdk-elasticache = { version = "1.124.0", features = ["behavior-version-latest"] }
+aws-sdk-elasticloadbalancingv2 = { version = "1.129.0", features = ["behavior-version-latest"] }
+aws-sdk-rds = { version = "1.154.0", features = ["behavior-version-latest"] }
+aws-sdk-sesv2 = { version = "1.140.1", features = ["behavior-version-latest"] }
+aws-sdk-dynamodb = { version = "1.131.0", features = ["behavior-version-latest"] }
+aws-sdk-ec2 = { version = "1.268.0", features = ["behavior-version-latest"] }
+aws-sdk-codepipeline = { version = "1.126.0", features = ["behavior-version-latest"] }
+aws-sdk-guardduty = { version = "1.149.0", features = ["behavior-version-latest"] }
+aws-sdk-s3 = { version = "1.152.0", features = ["behavior-version-latest"] }
 
 [profile.release]
 lto = true
