@@ -5,11 +5,11 @@ use aws_toolkit::{AppResult, client::initialize_client, codepipeline};
 use clap::Parser;
 
 #[derive(Parser)]
-#[command(author, version, about, long_about = None)]
-#[clap(
-    version = "v0.1.0",
-    author = "Anton Sidorov tonysidrock@gmail.com",
-    about = "Release codepipeline"
+#[command(
+    author,
+    version,
+    about = "Release codepipeline",
+    long_about = None
 )]
 struct Args {
     #[clap(short, long, default_value = "eu-central-1")]

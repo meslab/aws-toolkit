@@ -1,4 +1,5 @@
 use crate::AppResult;
+use crate::utils::matches_filters;
 use aws_sdk_codepipeline::Client;
 use aws_sdk_codepipeline::error::SdkError;
 use aws_sdk_codepipeline::types::StageExecutionStatus::{Failed, InProgress, Succeeded};
@@ -38,10 +39,7 @@ pub async fn list_all_pipelines(
     let include = include.to_vec();
     let exclude = exclude.to_vec();
 
-    let filter = |pipeline_name: &str| {
-        include.iter().any(|x| pipeline_name.contains(x))
-            && exclude.iter().all(|x| !pipeline_name.contains(x))
-    };
+    let filter = |pipeline_name: &str| matches_filters(pipeline_name, &include, &exclude);
 
     list_filtered_pipelines_internal(client, filter).await
 }
@@ -54,20 +52,11 @@ pub async fn list_pipelines(
     let input = list_all_pipelines(client, include, exclude).await?;
 
     let filter_failure = |x: &StageState| {
-        if x.latest_execution.is_none() {
-            return false;
-        }
-        let status = get_stage_status(x);
-        [Succeeded, Failed].contains(status)
+        get_stage_status(x).is_some_and(|status| [Succeeded, Failed].contains(status))
     };
 
-    let filter_progress = |x: &StageState| {
-        if x.latest_execution.is_none() {
-            return true;
-        }
-        let status = get_stage_status(x);
-        ![InProgress].contains(status)
-    };
+    let filter_progress =
+        |x: &StageState| get_stage_status(x).is_none_or(|status| *status != InProgress);
 
     list_state_pipelines_internal(client, &input, filter_failure, filter_progress).await
 }
@@ -79,37 +68,21 @@ pub async fn list_failed_pipelines(
 ) -> AppResult<Vec<String>> {
     let input = list_all_pipelines(client, include, exclude).await?;
 
-    let filter_failure = |x: &StageState| {
-        if x.latest_execution.is_none() {
-            return false;
-        }
-        let status = get_stage_status(x);
-        [Failed].contains(status)
-    };
+    let filter_failure =
+        |x: &StageState| get_stage_status(x).is_some_and(|status| *status == Failed);
 
-    let filter_progress = |x: &StageState| {
-        if x.latest_execution.is_none() {
-            return true;
-        }
-        let status = get_stage_status(x);
-        ![InProgress].contains(status)
-    };
+    let filter_progress =
+        |x: &StageState| get_stage_status(x).is_none_or(|status| *status != InProgress);
 
     list_state_pipelines_internal(client, &input, filter_failure, filter_progress).await
 }
 
 fn get_stage_status(
     stage_state: &StageState,
-) -> &aws_sdk_codepipeline::types::StageExecutionStatus {
-    &stage_state
+) -> Option<&aws_sdk_codepipeline::types::StageExecutionStatus> {
+    stage_state
         .latest_execution()
-        .unwrap_or_else(|| {
-            panic!(
-                "Cannot extract status from the latest execution of {}.",
-                &stage_state.stage_name().unwrap_or_default()
-            )
-        })
-        .status
+        .map(|execution| &execution.status)
 }
 
 async fn list_state_pipelines_internal<Ff, Fp>(
@@ -152,7 +125,7 @@ where
 {
     let pipelines = pipeline_names_getter(client, include, exclude).await?;
     for pipeline in pipelines {
-        println!("{}", &pipeline);
+        println!("{}", pipeline);
         release_pipeline(client, &pipeline).await?;
     }
     Ok(())
@@ -182,7 +155,7 @@ pub async fn release_pipeline(client: &Client, pipeline_name: &str) -> AppResult
                     retries += 1;
                     eprintln!(
                         "ThrottlingException encountered. Retrying in {} seconds... (attempt {}/{})",
-                        25 * retries,
+                        20 * retries,
                         retries,
                         max_retries
                     );

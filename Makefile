@@ -46,7 +46,12 @@ s3-guardduty-copy:
 	cargo build -r --bin s3-guardduty-copy
 	strip target/release/s3-guardduty-copy
 
-release: ssm-session scale-in-ecs ecr-gitconfig ses-suppression-list s3-guardduty-copy
+release-codepipelines:
+	cargo update
+	cargo build -r --bin release-codepipelines
+	strip target/release/release-codepipelines
+
+release: ssm-session scale-in-ecs ecr-gitconfig ses-suppression-list s3-guardduty-copy release-codepipelines
 
 all:
 	cargo build -r
@@ -55,6 +60,7 @@ all:
 	strip target/release/ecr-gitconfig
 	strip target/release/ses-suppression-list
 	strip target/release/s3-guardduty-copy
+	strip target/release/release-codepipelines
 
 install: all
 	cp target/release/ssm-session ~/.local/bin
@@ -81,4 +87,4 @@ upgrade:
 	for i in $$(cat Cargo.toml | grep '^aws-' | awk '{ print $$1 }'); do cargo remove $$i; cargo add $$i -F behavior-version-latest; done
 	cargo update
 
-.PHONY: rust-version format lint test run build ssm-session scale-in-ecs ecr-gitconfig ses-suppression-list s3-guardduty-copy release install clean uninstall all upgrade
+.PHONY: rust-version format lint test run build ssm-session scale-in-ecs ecr-gitconfig ses-suppression-list s3-guardduty-copy release-codepipelines release install clean uninstall all upgrade

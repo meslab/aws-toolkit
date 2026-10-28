@@ -7,11 +7,11 @@ use std::os::unix::process::CommandExt;
 use std::process::Command;
 
 #[derive(Parser)]
-#[command(author, version, about, long_about = None)]
-#[clap(
-    version = "v0.1.6",
-    author = "Anton Sidorov tonysidrock@gmail.com",
-    about = "Counts wwords frequency in a text file"
+#[command(
+    author,
+    version,
+    about = "Start an interactive SSM session for an ECS service",
+    long_about = None
 )]
 struct Args {
     #[clap(short, long, default_value = "auth")]
@@ -46,14 +46,14 @@ async fn main() -> AppResult<()> {
     let command = if let Some(exec) = args.exec {
         format!(
             "command=sudo docker exec -ti $(sudo docker ps -qf name={} | head -n1) /bin/bash -lc {}",
-            &args.service, exec
+            args.service, exec
         )
     } else if args.instance.is_some() || args.host {
         "command=sudo su -".to_string()
     } else {
         format!(
             "command=sudo docker exec -ti $(sudo docker ps -qf name={} | head -n1) /bin/bash",
-            &args.service
+            args.service
         )
     };
 
@@ -77,22 +77,23 @@ async fn main() -> AppResult<()> {
 
     println!(
         "Service {} is running on instance {}",
-        &args.service, instance_id
+        args.service, instance_id
     );
 
-    let _session = Command::new("aws")
+    let error = Command::new("aws")
         .arg("ssm")
         .arg("start-session")
         .arg("--region")
         .arg(&args.region)
+        .arg("--profile")
+        .arg(&args.profile)
         .arg("--target")
         .arg(instance_id)
         .arg("--document-name")
         .arg("AWS-StartInteractiveCommand")
         .arg("--parameters")
-        .arg("--profile")
-        .arg(&args.profile)
         .arg(command)
         .exec();
-    Ok(())
+
+    Err(error.into())
 }
