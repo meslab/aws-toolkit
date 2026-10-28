@@ -80,17 +80,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-recursion"
-version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f8abc12baad266b1c8cec146854c195b5864b4221d4b2ca7296a7ae82d9e451"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 3.0.9",
-]
-
-[[package]]
 name = "atomic-waker"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -268,32 +257,6 @@ dependencies = [
  "http 1.5.0",
  "regex-lite",
  "tracing",
-]
-
-[[package]]
-name = "aws-sdk-dynamodb"
-version = "1.131.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18d4e5ed975d72bce813432317e0cf63d4b37b5f62e9bc0a4922b2fe2b2c4347"
-dependencies = [
- "arc-swap",
- "aws-credential-types",
- "aws-runtime",
- "aws-smithy-async",
- "aws-smithy-http",
- "aws-smithy-json",
- "aws-smithy-observability",
- "aws-smithy-runtime",
- "aws-smithy-runtime-api",
- "aws-smithy-schema 0.2.1",
- "aws-smithy-types",
- "aws-types",
- "bytes",
- "fastrand",
- "http 1.5.0",
- "regex-lite",
- "tracing",
- "url",
 ]
 
 [[package]]
@@ -857,12 +820,10 @@ dependencies = [
 name = "aws-toolkit"
 version = "0.2.8"
 dependencies = [
- "async-recursion",
  "aws-config",
  "aws-sdk-autoscaling",
  "aws-sdk-codecommit",
  "aws-sdk-codepipeline",
- "aws-sdk-dynamodb",
  "aws-sdk-ec2",
  "aws-sdk-ecs",
  "aws-sdk-elasticache",

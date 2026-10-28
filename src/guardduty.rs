@@ -1,6 +1,7 @@
 use crate::AppResult;
+use crate::utils::matches_filters;
 use aws_sdk_guardduty::Client;
-use aws_sdk_guardduty::types::DetectorFeatureResult;
+use aws_sdk_guardduty::types::{DetectorFeatureResult, FeatureStatus};
 use log::debug;
 
 pub async fn get_buckets_with_guardduty_enabled(client: &Client) -> AppResult<bool> {
@@ -20,14 +21,13 @@ pub async fn get_buckets_with_guardduty_enabled(client: &Client) -> AppResult<bo
         .send()
         .await?;
 
-    println!("GuardDuty status: {:?}", &detector.status());
+    println!("GuardDuty status: {:?}", detector.status());
 
     for feature in detector.features() {
-        let name = feature.name();
-        if matches!(name, Some(DetectorFeatureResult::S3DataEvents)) {
+        if feature.name() == Some(&DetectorFeatureResult::S3DataEvents) {
+            let enabled = feature.status() == Some(&FeatureStatus::Enabled);
             println!("S3 protection status: {:?}", feature.status());
-        } else {
-            return Ok(true);
+            return Ok(enabled);
         }
     }
 
@@ -45,9 +45,7 @@ pub async fn list_malware_protected_buckets(
     let include = include.to_vec();
     let exclude = exclude.to_vec();
 
-    let filter = |name: &str| {
-        include.iter().any(|x| name.contains(x)) && exclude.iter().all(|x| !name.contains(x))
-    };
+    let filter = |name: &str| matches_filters(name, &include, &exclude);
 
     loop {
         let resp = client

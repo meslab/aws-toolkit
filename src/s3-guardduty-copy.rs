@@ -7,11 +7,11 @@ use aws_toolkit::{AppResult, client::initialize_client, guardduty, s3};
 use clap::Parser;
 
 #[derive(Parser)]
-#[command(author, version, about, long_about = None)]
-#[clap(
-    version = "v0.1.0",
-    author = "Anton Sidorov tonysidrock@gmail.com",
-    about = "s3-guardduty-copy"
+#[command(
+    author,
+    version,
+    about = "s3-guardduty-copy",
+    long_about = None
 )]
 struct Args {
     #[clap(short, long, default_value = "eu-central-1")]
@@ -56,20 +56,36 @@ async fn main() -> AppResult<()> {
     debug!("{:?}", bucket_names);
 
     for bucket in bucket_names {
-        println!("Bucket {}: ", &bucket);
-        let bucket_policy = s3::save_bucket_policy(&s3_client, &bucket).await?;
-        if bucket_policy.is_some() {
-            s3_client
-                .delete_bucket_policy()
-                .bucket(&bucket)
-                .send()
-                .await?;
+        println!("Bucket {}: ", bucket);
+
+        let bucket_policy = if args.dry_run {
+            None
+        } else {
+            let policy = s3::save_bucket_policy(&s3_client, &bucket).await?;
+            if policy.is_some() {
+                s3_client
+                    .delete_bucket_policy()
+                    .bucket(&bucket)
+                    .send()
+                    .await?;
+            }
+            policy
+        };
+
+        let copy_result = s3::copy_all_objects(&s3_client, &bucket, args.dry_run).await;
+
+        if let Some(policy) = &bucket_policy
+            && let Err(error) = s3::restore_bucket_policy(&s3_client, &bucket, policy).await
+        {
+            eprintln!("Failed to restore policy for bucket {}: {}", bucket, error);
+            return Err(error);
         }
 
-        let counter: usize = s3::copy_all_objects(&s3_client, &bucket).await?;
-        println!("copied {} files", counter);
-        if let Some(policy) = bucket_policy {
-            s3::restore_bucket_policy(&s3_client, &bucket, &policy).await?;
+        let counter = copy_result?;
+        if args.dry_run {
+            println!("{} files would be copied", counter);
+        } else {
+            println!("copied {} files", counter);
         }
     }
 

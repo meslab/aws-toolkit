@@ -3,10 +3,14 @@ use aws_sdk_rds::{Client, types::Filter};
 use chrono::{self, Utc};
 use log::debug;
 
-pub async fn list_db_instances(client: &Client, cluster: &str) -> AppResult<Vec<String>> {
+pub async fn list_db_instances(
+    client: &Client,
+    cluster: &str,
+    suffix: &str,
+) -> AppResult<Vec<String>> {
     let mut db_instances = Vec::new();
 
-    let filter_value = format!("{}-postgres", cluster);
+    let filter_value = format!("{}-{}", cluster, suffix);
     let filter = Filter::builder()
         .name("db-instance-id") // same as Name field in boto3
         .values(filter_value)

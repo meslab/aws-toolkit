@@ -1,4 +1,5 @@
 use crate::AppResult;
+use crate::utils::matches_filters;
 use aws_sdk_codecommit::Client;
 use log::debug;
 
@@ -38,13 +39,10 @@ pub async fn list_repositories(
     include: &[String],
     exclude: &[String],
 ) -> AppResult<Vec<String>> {
-    let include: Vec<_> = include.iter().map(|x| x.as_str()).collect();
-    let exclude: Vec<_> = exclude.iter().map(|x| x.as_str()).collect();
+    let include = include.to_vec();
+    let exclude = exclude.to_vec();
 
-    let filter = |repo_name: &str| {
-        include.iter().any(|&x| repo_name.contains(x))
-            && exclude.iter().all(|&x| !repo_name.contains(x))
-    };
+    let filter = |repo_name: &str| matches_filters(repo_name, &include, &exclude);
 
     list_filtered_repositories_internal(client, filter).await
 }

@@ -14,11 +14,11 @@ use log::{debug, info};
 use std::io::Write;
 
 #[derive(Parser)]
-#[command(author, version, about, long_about = None)]
-#[clap(
-    version = "v0.2.6",
-    author = "Anton Sidorov tonysidrock@gmail.com",
-    about = "Scale down ECS cluster"
+#[command(
+    author,
+    version,
+    about = "Scale down ECS cluster",
+    long_about = None
 )]
 struct Args {
     #[clap(short, long, required = true)]
@@ -38,6 +38,20 @@ struct Args {
 
     #[clap(short = 'f', long, default_value = "false")]
     skip_final_rds_snapshot: bool,
+
+    #[clap(
+        long,
+        default_value = "Prefix",
+        help = "Tag key used to identify EC2 instances and NAT gateways"
+    )]
+    tag_key: String,
+
+    #[clap(
+        long,
+        default_value = "postgres",
+        help = "RDS instance name suffix following the cluster name"
+    )]
+    rds_suffix: String,
 
     #[clap(short, long, default_value = "false", conflicts_with = "migration")]
     scaledown: bool,
@@ -92,8 +106,9 @@ async fn main() -> AppResult<()> {
     info!("Load Balancers: {:?}", load_balancers);
 
     let ec2_client = initialize_client::<Ec2Client>(region.clone(), &args.profile).await;
-    let nat_gateways = ec2::get_nat_gateway_ids(&ec2_client, &args.cluster).await?;
-    let ec2_instances = ec2::get_ec2_instances_ids(&ec2_client, &args.cluster).await?;
+    let nat_gateways = ec2::get_nat_gateway_ids(&ec2_client, &args.cluster, &args.tag_key).await?;
+    let ec2_instances =
+        ec2::get_ec2_instances_ids(&ec2_client, &args.cluster, &args.tag_key).await?;
 
     if args.scaledown || args.delete {
         if !asgs.is_empty() {
@@ -117,7 +132,7 @@ async fn main() -> AppResult<()> {
     }
 
     let rds_client = initialize_client::<RdsClient>(region.clone(), &args.profile).await;
-    let db_instances = rds::list_db_instances(&rds_client, &args.cluster).await?;
+    let db_instances = rds::list_db_instances(&rds_client, &args.cluster, &args.rds_suffix).await?;
     info!("DB Instances: {:?}", db_instances);
 
     if args.scaledown && !db_instances.is_empty() {
@@ -164,7 +179,7 @@ async fn main() -> AppResult<()> {
         }
     }
 
-    debug!("Cluster: {} Region: {}.", &args.cluster, &args.region);
+    debug!("Cluster: {} Region: {}.", args.cluster, args.region);
 
     Ok(())
 }

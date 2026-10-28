@@ -2,6 +2,11 @@
 name = "aws-toolkit"
 version = "0.2.8"
 edition = "2024"
+rust-version = "1.88"
+authors = ["Anton Sidorov <tonysidrock@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/meslab/aws-toolkit"
+default-run = "ssm-session"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -11,7 +16,6 @@ clap = { version = "4.5.29", features = ["derive"] }
 chrono = "0.4.39"
 env_logger = "0.11.6"
 log = "0.4.25"
-async-recursion = "1.1.1"
 git2 = "0.20.0"
 percent-encoding = "2.3.2"
 aws-config = { version = "1.12.0", features = ["behavior-version-latest"] }
@@ -22,7 +26,6 @@ aws-sdk-elasticache = { version = "1.124.0", features = ["behavior-version-lates
 aws-sdk-elasticloadbalancingv2 = { version = "1.129.0", features = ["behavior-version-latest"] }
 aws-sdk-rds = { version = "1.154.0", features = ["behavior-version-latest"] }
 aws-sdk-sesv2 = { version = "1.140.1", features = ["behavior-version-latest"] }
-aws-sdk-dynamodb = { version = "1.131.0", features = ["behavior-version-latest"] }
 aws-sdk-ec2 = { version = "1.268.0", features = ["behavior-version-latest"] }
 aws-sdk-codepipeline = { version = "1.126.0", features = ["behavior-version-latest"] }
 aws-sdk-guardduty = { version = "1.149.0", features = ["behavior-version-latest"] }

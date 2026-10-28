@@ -9,11 +9,11 @@ use std::io::Write;
 use std::path::Path;
 
 #[derive(Parser)]
-#[command(author, version, about, long_about = None)]
-#[clap(
-    version = "v0.1.2",
-    author = "Anton Sidorov tonysidrock@gmail.com",
-    about = "Updates custom gitconfig file"
+#[command(
+    author,
+    version,
+    about = "Updates custom gitconfig file",
+    long_about = None
 )]
 struct Args {
     #[clap(short, long, default_value = "/tmp/gitconfig")]
@@ -62,17 +62,20 @@ async fn main() -> AppResult<()> {
 
     let args = Args::parse();
 
-    let mut cfg = Config::open_default().unwrap();
+    let mut cfg = Config::open_default()?;
     let _ = cfg.add_file(Path::new(&args.file), ConfigLevel::Local, true);
-    let binding = cfg.get_string("user.name").unwrap();
+
     let username = match &args.name {
-        Some(name) => name,
-        None => &binding,
+        Some(name) => name.clone(),
+        None => cfg
+            .get_string("user.name")
+            .map_err(|_| "user.name is not configured; pass --name")?,
     };
-    let binding = cfg.get_string("user.email").unwrap();
     let email = match &args.email {
-        Some(email) => email,
-        None => &binding,
+        Some(email) => email.clone(),
+        None => cfg
+            .get_string("user.email")
+            .map_err(|_| "user.email is not configured; pass --email")?,
     };
 
     let mut file = File::create(&args.file)?;
@@ -83,16 +86,16 @@ async fn main() -> AppResult<()> {
 
             let client = initialize_client::<CodeCommitClient>(codecommit_region, profile).await;
             let base_repositories =
-                codecommit::list_exact_repositories(&client, &args.base, &args.exclude).await;
+                codecommit::list_exact_repositories(&client, &args.base, &args.exclude).await?;
             info!("Base repositories: {:?}", base_repositories);
             let repositories =
-                codecommit::list_repositories(&client, &args.include, &args.exclude).await;
+                codecommit::list_repositories(&client, &args.include, &args.exclude).await?;
             info!("Repositories: {:?}", repositories);
-            for repo in base_repositories.unwrap() {
-                write_gitconfig(&mut file, &repo, region, profile).expect("Cannot write to file")
+            for repo in base_repositories {
+                write_gitconfig(&mut file, &repo, region, profile)?;
             }
-            for repo in repositories.unwrap() {
-                write_gitconfig(&mut file, &repo, region, profile).expect("Cannot write to file")
+            for repo in repositories {
+                write_gitconfig(&mut file, &repo, region, profile)?;
             }
         }
     }
@@ -101,7 +104,7 @@ async fn main() -> AppResult<()> {
         file,
         "[credential]\n\thelper = !aws codecommit credential-helper $@\n\tUseHttpPath = true"
     )?;
-    writeln!(file, "[user]\n\temail = {}\n\tname = {}", &email, &username)?;
+    writeln!(file, "[user]\n\temail = {}\n\tname = {}", email, username)?;
 
     Ok(())
 }

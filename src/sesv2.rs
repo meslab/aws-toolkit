@@ -1,8 +1,9 @@
 use crate::AppResult;
+use aws_sdk_sesv2::primitives::DateTime as AwsDateTime;
 use aws_sdk_sesv2::{Client, types::SuppressedDestinationSummary};
 use chrono::{DateTime, Utc};
 use log::{debug, info};
-use std::{thread, time};
+use std::time::Duration;
 
 pub async fn get_suppression_list(
     sesv2_client: &Client,
@@ -26,7 +27,7 @@ pub async fn get_suppression_list(
                 .iter()
                 .filter_map(|address| email_address_filter(last_count_days, &now, address)),
         );
-        thread::sleep(time::Duration::from_millis(1000));
+        tokio::time::sleep(Duration::from_millis(1000)).await;
     }
     Ok(emails)
 }
@@ -47,7 +48,7 @@ fn email_address_filter(
 fn get_email_if_match_time_interval(
     now: &DateTime<Utc>,
     address: &SuppressedDestinationSummary,
-    timestamp: &aws_sdk_ec2::primitives::DateTime,
+    timestamp: &AwsDateTime,
     last: u32,
 ) -> Option<(String, String, String)> {
     let time_date = match DateTime::from_timestamp(timestamp.secs(), timestamp.subsec_nanos()) {
@@ -69,7 +70,7 @@ fn get_email_if_match_time_interval(
 
 fn get_email_suppression_record(
     address: &SuppressedDestinationSummary,
-    timestamp: &aws_sdk_ec2::primitives::DateTime,
+    timestamp: &AwsDateTime,
 ) -> Option<(String, String, String)> {
     Some((
         address.email_address().to_string(),
