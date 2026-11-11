@@ -39,3 +39,8 @@ cargo test --all-targets
 - Binaries call real AWS APIs. Only `release-codepipelines` and `s3-guardduty-copy` support `--dry-run`.
 - `scale-in-ecs --delete` terminates EC2 instances and deletes NAT gateways, load balancers, ECS services, RDS, and ElastiCache resources. Confirmation is requested only when `--delete` is combined with `--skip-final-rds-snapshot`; `--delete` alone proceeds without prompting. Never run it without explicit user approval.
 - `ssm-session` shells out to the external `aws ssm start-session` CLI, so the AWS CLI must be installed.
+
+## Git commits
+
+- Keep the commit message to a single line of at most 72 characters, counting the `<branch>: ` prefix that the author's global `prepare-commit-msg` hook adds.
+- Never add `Co-Authored-By:` or any other attribution trailer.

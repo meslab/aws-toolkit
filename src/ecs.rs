@@ -1,6 +1,7 @@
 use crate::AppResult;
 use aws_sdk_ecs::Client;
 use aws_sdk_ecs::error::{ProvideErrorMetadata, SdkError};
+use aws_sdk_ecs::types::SchedulingStrategy;
 use log::debug;
 use std::time::Duration;
 
@@ -56,6 +57,9 @@ pub async fn get_service_arns(
                     .services()
                     .iter()
                     .filter(|service| service.desired_count > desired_count)
+                    .filter(|service| {
+                        service.scheduling_strategy() != Some(&SchedulingStrategy::Daemon)
+                    })
                     .filter_map(|service| service.service_arn().map(ToOwned::to_owned)),
             );
         }
