@@ -46,13 +46,6 @@ struct Args {
     )]
     tag_key: String,
 
-    #[clap(
-        long,
-        default_value = "postgres",
-        help = "RDS instance name suffix following the cluster name"
-    )]
-    rds_suffix: String,
-
     #[clap(short, long, default_value = "false", conflicts_with = "migration")]
     scaledown: bool,
 }
@@ -132,7 +125,7 @@ async fn main() -> AppResult<()> {
     }
 
     let rds_client = initialize_client::<RdsClient>(region.clone(), &args.profile).await;
-    let db_instances = rds::list_db_instances(&rds_client, &args.cluster, &args.rds_suffix).await?;
+    let db_instances = rds::list_db_instances(&rds_client, &args.cluster).await?;
     info!("DB Instances: {:?}", db_instances);
 
     if args.scaledown && !db_instances.is_empty() {

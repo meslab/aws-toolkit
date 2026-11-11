@@ -1,24 +1,13 @@
 use crate::{AppResult, sanitize_string};
-use aws_sdk_rds::{Client, types::Filter};
+use aws_sdk_rds::Client;
 use chrono::{self, Utc};
 use log::debug;
 
-pub async fn list_db_instances(
-    client: &Client,
-    cluster: &str,
-    suffix: &str,
-) -> AppResult<Vec<String>> {
+pub async fn list_db_instances(client: &Client, prefix: &str) -> AppResult<Vec<String>> {
     let mut db_instances = Vec::new();
-
-    let filter_value = format!("{}-{}", cluster, suffix);
-    let filter = Filter::builder()
-        .name("db-instance-id") // same as Name field in boto3
-        .values(filter_value)
-        .build();
 
     let mut db_instances_stream = client
         .describe_db_instances()
-        .filters(filter)
         .max_records(100)
         .into_paginator()
         .send();
@@ -33,7 +22,7 @@ pub async fn list_db_instances(
                 .filter_map(|instance| {
                     let id = instance.db_instance_identifier()?;
 
-                    if !id.contains(cluster) {
+                    if !id.starts_with(prefix) {
                         return None;
                     }
 
